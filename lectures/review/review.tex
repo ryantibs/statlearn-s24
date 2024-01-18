@@ -80,12 +80,12 @@ Let $X_n$, $n=1,2,3,\dots$ be a sequence of real-valued random variables.
   \]
   it holds that
   \[
-  \sup_x \, |F_n(x) - F(x)| \to 0.
+  \sup_x \, |F_n(x) - F(x)| \asto 0.
   \]
 
 \item Kolmogorov-Smirnov theorem: under the same conditions, 
   \[
-  \sqrt{n} \sup_x \, |F_n(x) - F(x)| \to \sup_{t \in [0,1]} \, |B(t)|,
+  \sqrt{n} \sup_x \, |F_n(x) - F(x)| \asto \sup_{t \in [0,1]} \, |B(t)|,
   \]
   where $B$ is a Brownian bridge (standard Brownian motion subject to $B(0) =
   0$ and $B(1) = 0$).   
@@ -147,12 +147,12 @@ to
 \]
 The \emph{Fisher information} is given by the expectation of the Hessian,
 \[
-I(\theta) = \E[\nabla^2 \ell(\theta; X) ],
+I(\theta) = - \E[\nabla^2 \ell(\theta; X) ],
 \]
 where the expectation is taken over $X \sim P_\theta$. In the univariate case, 
 $\Theta \subseteq \R$, this is simply 
 \[
-I(\theta) = \E\bigg[ \frac{d^2 \ell(\theta; X)}{d\theta^2} \bigg].
+I(\theta) = - \E\bigg[ \frac{d^2 \ell(\theta; X)}{d\theta^2} \bigg].
 \]
 Under appropriate regularity conditions, when $X_1,\dots,X_n \sim P_\theta$, 
 \[
