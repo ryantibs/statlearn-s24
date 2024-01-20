@@ -69,9 +69,8 @@ Let $X_n$, $n=1,2,3,\dots$ be a sequence of real-valued random variables.
 \item Central limit theorem (CLT): under the same conditions, if additionally a
   second moment exists and we let $\sigma^2 = \Var[X_i]$, then
   \[
-  \frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \dto Z,
+  \frac{\sqrt{n}(\bar{X}_n - \mu)}{\sigma} \dto N(0, 1).
   \]
-  where $Z$ is standard normal, $Z \sim N(0,1)$. 
 
 \item Gilvenko-Cantelli theorem: if $X_1,X_2,\dots$ are i.i.d.\ then for the
   empirical distribution function $F_n$ defined as 
@@ -128,44 +127,43 @@ Let $X_n$, $n=1,2,3,\dots$ be a sequence of real-valued random variables.
 
 Let $\{P_\theta : \theta \in \Theta\}$ be a parametric family of models, and 
 write $p_\theta$ for the probability density function (or probability mass
-function, in the discrete case). We write $L(\theta; x) = p_\theta(x)$ for the
+function, in the discrete case). We write $L(\theta; z) = p_\theta(z)$ for the
 likelihood function.
 
-Then given i.i.d.\ $X_1,\dots, X_n \sim P_\theta$, the problem
+Then given i.i.d.\ $Z_1,\dots, Z_n \sim P_\theta$, the problem
 \[ 
-\maximize_{\theta \in \Theta} \; \prod_{i=1}^n L(\theta; X_i),
+\maximize_{\theta \in \Theta} \; \prod_{i=1}^n L(\theta; Z_i),
 \] 
 is called \emph{maximum likelihood estimation}, and a maximizer
 \smash{$\htheta$} of the above is called a \emph{maximum likelihood estimator}
 (MLE). (We are often imprecise and call this \emph{the} MLE, ignorning
 nonuniqueness of the solution.) Note that we can equivalently write this via the 
-negative log-likelihood function $\ell(\theta; x) = - \log L(\theta; x)$, i.e., 
+negative log-likelihood function $\ell(\theta; z) = - \log L(\theta; z)$, i.e., 
 the above is equivalent
 to  
 \[
-\minimize_{\theta \in \Theta} \; \sum_{i=1}^n \ell(\theta; X_i).
+\minimize_{\theta \in \Theta} \; \sum_{i=1}^n \ell(\theta; Z_i).
 \]
 The \emph{Fisher information} is given by the expectation of the Hessian,
 \[
-I(\theta) = - \E[\nabla^2 \ell(\theta; X) ],
+I(\theta) = \E[\nabla^2 \ell(\theta; Z) ],
 \]
-where the expectation is taken over $X \sim P_\theta$. In the univariate case, 
+where the expectation is taken over $Z \sim P_\theta$. In the univariate case, 
 $\Theta \subseteq \R$, this is simply 
 \[
-I(\theta) = - \E\bigg[ \frac{d^2 \ell(\theta; X)}{d\theta^2} \bigg].
+I(\theta) = \E\bigg[ \frac{d^2 \ell(\theta; Z)}{d\theta^2} \bigg].
 \]
-Under appropriate regularity conditions, when $X_1,\dots,X_n \sim P_\theta$, 
+Under appropriate regularity conditions, when $Z_1,\dots,Z_n \sim P_\theta$, 
 \[
-\frac{\sqrt{n}(\htheta - \theta)}{s_n} \dto Z, 
+\frac{\sqrt{n}(\htheta - \theta)}{s_n} \dto N(0, 1),
 \]
-where \smash{$s_n = 1/\sqrt{I(\htheta)}$}, and $Z$ is standard normal. In the 
-multivariate case, $\Theta \subseteq \R^d$, under regularity conditions, 
+where \smash{$s_n = 1/\sqrt{I(\htheta)}$}. In the multivariate case, $\Theta
+\subseteq \R^d$, under regularity conditions,  
 \[
-\sqrt{n} S_n^{-1} (\htheta - \theta) \dto Z,
+\sqrt{n} S_n^{-1} (\htheta - \theta) \dto N(0, I_d),
 \]
 where $S_n = I(\htheta)^{-1/2}$, which is the symmetric square root of the
-inverse Fisher information matrix at the MLE, and $Z \sim N(0, I_d)$, a
-$d$-dimensional standard normal vector.    
+inverse Fisher information matrix at the MLE.
 
 The following result is also true (under regularity conditions):
 \[
@@ -188,7 +186,7 @@ least squares regression.
 
 An \emph{exponential family distribution} is of the form
 \[
-p_\eta(x) = \exp\big(T(x)^\T \eta - \psi(\eta)\big) h(x),
+p_\eta(z) = \exp\big(T(z)^\T \eta - \psi(\eta)\big) h(z),
 \]
 Here $\eta \in \R^d$ is called the \emph{natural parameter} of the exponential  
 family (often we use $\eta$, rather than $\theta$, here). We call the function
@@ -198,10 +196,10 @@ $\psi$ the \emph{log-partition function}, we call $T$ the \emph{sufficient
 A remarkable fact: in any exponential family distribution, the log-partition
 function $\psi$ is always convex, by virtue of the fact that $p_\eta$ must be a
 bona fide density and therefore must integrate to one (sum to one, in the
-discrete case). This means that the map $\eta \mapsto p_\eta(x)$ is always
-log-concave (for fixed $x$), and the resulting maximum likelihood problem       
+discrete case). This means that the map $\eta \mapsto p_\eta(z)$ is always
+log-concave (for fixed $z$), and the resulting maximum likelihood problem       
 \[
-\minimize_\eta \; -\frac{1}{n} \bigg( \sum_{i=1}^n T(X_i) \bigg)^{\hspace{-2pt}
+\minimize_\eta \; -\frac{1}{n} \bigg( \sum_{i=1}^n T(Z_i) \bigg)^{\hspace{-2pt}
   \T} \eta + \psi(\eta)    
 \]
 is always a convex optimization problem. (Convexity and optimization will be
