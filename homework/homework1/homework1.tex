@@ -168,13 +168,70 @@ In this exercise, we will work on risk calculations for least squares regression
   X$ is almost surely invertible.  
 \end{enumerate}
 
-\section{Nearest neighbor distances}
+\section{Asymptotic scaling of nearest neighbor distances [17 points]} 
 
-In this exercise, we will analyze the risk of wavelet denoising. 
+In this exercise, we will analyze the asymptotic scaling of nearest neighbor
+distances.  
 
 \begin{enumerate}[label=(\alph*)]
-\item
+\item Let $x_0,x_1,\dots,x_n$ be i.i.d.\ from a distribution $P$ supported on
+  $[-R,R]^d$. Let $i(x_0)$ be the index of the closest point (in $\ell_2$
+  distance) among $x_{1:n} = \{x_1,\dots,x_n\}$ to $x_0$. Prove that for any
+  $\delta > 0$,
+  \marginpar{\small [3 pts]}
+  \[
+  \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) = \int (1 - P(B_d(x, \delta)))^n \,
+  dP(x),
+  \]
+  where $B_d(x, \delta)$ denotes the $\ell_2$ ball of radius $\delta$
+  centered at $x$. To be clear, the probability on the left-hand side above is
+  over $x_0$ and $x_{1:n}$.
 
+\item Let $U_1,\dots,U_{N(\delta)}$ be a rectangular partition of $[-R,R]^d$
+  such each $U_j$ has diameter at most $\delta$. Prove that 
+  \marginpar{\small [2 pts]}
+  \[
+  N(\delta) \leq \frac{c}{\delta^d},
+  \]
+  where $c>0$ is a constant depending only on $R$ and $d$. 
+
+\item Using parts (a) and (b), prove that 
+  \marginpar{\small [7 pts]}
+  \[
+  \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \frac{c}{e n \delta^d}.
+  \]
+  Hint: first show that
+  \[
+  \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \sum_{j=1}^{N(\delta)}
+  \int_{U_j} (1 - P(U_j))^n \, dP(x) = \sum_{j=1}^{N(\delta)} P(U_j) (1 -
+  P(U_j))^n. 
+  \]
+  Then show that each summand above is bounded by $1/(en)$.
+
+\item Argue that the last part translates to
+  \marginpar{\small [1 pts]}
+  \[
+  \|x_{i(x_0)} - x_0 \|_2 \lesssim \bigg( \frac{1}{n} \bigg)^{1/d} \quad 
+  \text{in probability}.
+  \]
+
+\item Finally, let $k \geq 0$ be a nonnegative integer, and as in lecture, let  
+  $\cN_k(x_0)$ denote the indices of the $k$ closest (in $\ell_2$ distance)
+  points among $x_{1:n}$ to $x_0$. Use part (d) to prove that 
+  \marginpar{\small [4 pts]}
+  \[
+  \frac{1}{k} \sum_{i \in \cN_k(x_0)} \, \|x_i - x_0\|_2 \lesssim \bigg(
+  \frac{k}{n} \bigg)^{1/d} \quad \text{in probability}. 
+  \]
+  Hint: divide up the set $x_{1:n}$ into $k+1$ subsets, where the first $k$ have
+  equal size \smash{$\lfloor n/k \rfloor$}. Let $i(x_0, j)$ denote the index of
+  the closest point in subset $j$ to $x_0$. Argue that 
+  \[
+  \sum_{i \in \cN_k(x_0)} \|x_i - x_0\|_2 \leq \sum_{j=1}^k \|x_{i(x_0,j)} -
+  x_0\|_2, 
+  \]
+  and apply part (d) to each summand on the right-hand side. 
+ 
 \end{enumerate}
 
 \section{Bonus: risk analysis for wavelet denoising [22 points]}
