@@ -272,16 +272,17 @@ decomposition,
 &= \bigg[ \frac{1}{k} \sum_{i \in \cN_k(x_0)} 
 \big( f_0(x_i) - f_0(x_0) \big) \bigg]^2 + \frac{\sigma^2}{k} \\  
 &\leq \bigg[ \frac{L}{k} \sum_{i \in \cN_k(x_0)}  
-\|x_i - x_0\|_2 \bigg]^2 + \frac{\sigma^2}{k}.
+\|x_i - x_0\|_2 \bigg]^2 + \frac{\sigma^2}{k},
 \end{align*}
-In the last line we used the Lipschitz property. Now it turns out that 
-\smash{$\E[\max_{i \in \cN_k(x_0)} \|x_i - x_0\|_2] \lesssim (k/n)^{1/d}$}, in
-probability. (To get intuition for this, think of the case when the inputs
-$x_1,\dots,x_n$ form a lattice on $[0,1]^d$.) You will prove this probability
-bound on the homework. Then taking an expectation over $x_0$, our bias-variance
-upper bound (in probability) becomes            
+the last line using the Lipschitz property. It turns out that
+\smash{$\frac{1}{k} \sum_{i \in \cN_k(x_0)} \|x_i - x_0\|_2 \leq c
+  (k/n)^{1/d}$}, with high probability over the distribution of $x_{1:n}$, where
+$c>0$ is a constant not depending on $x_0$. (To get intuition for this, you can
+think of the case when the inputs $x_1,\dots,x_n$ form a lattice on $[0,1]^d$.) 
+You will prove a simple version of this claim on the homework. Our bias-variance  
+upper bound becomes 
 \[
-L^2 \bigg(\frac{k}{n}\bigg)^{2/d} + \frac{\sigma^2}{k}.
+(cL)^2 \bigg( \frac{k}{n} \bigg)^{2/d} + \frac{\sigma^2}{k}.
 \]
 Balancing the two terms so that they are equal gives \smash{$k^{1+2/d} \asymp
   n^{2/d}$}, i.e., \smash{$k \asymp n^{2/(2+d)}$}. And plugging this in gives
@@ -405,7 +406,7 @@ with $p(x)$ denoting density of the input distribution at $x$, and $\nu_d =
 \mathrm{vol}(B_d(0,1))$ the Lebesgue measure of the unit ball in $\R^d$. (Note
 that this sharpens the earlier claim about $k\th$-nearest neighbor distances
 having the asymptotic scaling $(k/n)^{1/d}$.) This is called the
-\emph{equivalent kernel} for $k$-nearest neighbor regression. 
+\emph{equivalent kernel} for $k$-nearest neighbor regression.  
 
 \subsection{Local linear regression}
 
@@ -558,16 +559,16 @@ with variance $\sigma^2>0$,
 For the spherical kernel, using $P_n$ for the empirical distribution of
 $x_1,\dots,x_n$, we have  
 \[
-w_i(x_0) = \frac{1\{ \|x_0-x_i\|_2 \leq h \}}{n P_n(B_d(x_0, h)) } \lesssim  
-\frac{1}{nh^d},
+w_i(x_0) = \frac{1\{ \|x_0-x_i\|_2 \leq h \}}{n P_n(B_d(x_0, h)) } \leq
+\frac{1}{cnh^d}, 
 \]
-where $B_d(x_0,h)$ is the $\ell_2$ ball centered at $x_0$ with radius $h$. The 
-inequality holds because it can be shown that with high probability, over the  
+where $B_d(x_0, h)$ is the $\ell_2$ ball of radius $h$ centered at $x_0$. The 
+inequality above holds because we can show with high probability, over the
 distribution of $x_{1:n}$, that $P_n(S) \geq c \cdot \mathrm{vol}(S)$ for any
 set $S$ that is not ``too small'', where $c>0$ is a constant that does not
-depend on $S$. Our bias-variance upper bound on the risk is hence: 
+depend on $S$. Our bias-variance upper bound on the risk is hence:   
 \[
-L^2 h^2 + \frac{\sigma^2}{nh^d}.
+L^2 h^2 + \frac{\sigma^2}{cnh^d}.
 \]
 Balancing the two terms so that they are equal gives \smash{$h^{2+d} \asymp
   n^{-1}$}, i.e., \smash{$h \asymp n^{-1/(2+d)}$}. And plugging this in gives
