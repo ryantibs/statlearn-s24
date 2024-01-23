@@ -13,18 +13,18 @@ Due Friday February 9 at 5pm}
 \RaggedRight
 \vspace{-50pt}
 
-\section{Mathematical statistics warm-up [15 points]}
+\section{Mathematical statistics warm-up [30 points]}
 
 \def\pto{\overset{p}{\to}}
 \def\dto{\overset{d}{\to}}
 
 \begin{enumerate}[label=(\alph*)]
 \item Suppose that $X_n \geq 0$ and $\E[X_n]=O(r_n)$. Prove that $X_n=O_p(r_n)$.
-  \marginpar{\small [1 pt]} 
+  \marginpar{\small [2 pts]} 
 
 \item Suppose that $X_n \geq 0$ and $X_n=O_p(r_n)$.  Give an example to show
   that in general, this does not  imply that $\E[X_n]=O(r_n)$.   
-  \marginpar{\small [1 pt]} 
+  \marginpar{\small [2 pts]} 
 
 \item Prove that for $X \geq 0$, it holds that 
   \[
@@ -32,7 +32,7 @@ Due Friday February 9 at 5pm}
   \]  
   You may assume that $X$ is continuously distributed and hence has a probability
   density function. 
-  \marginpar{\small [2 pts]} 
+  \marginpar{\small [4 pts]} 
 
 \item Suppose that $X_n \geq 0$ and $X_n=O_p(r_n)$, the latter bound holding
   ``exponentially fast'', meaning that there are constants $\gamma_0,n_0>0$ such 
@@ -42,7 +42,7 @@ Due Friday February 9 at 5pm}
   \]
   Prove that $\E[X_n]=O(r_n)$. Hint: use the formulation for $\E[X_n]$ from the
   last question. 
-  \marginpar{\small [3 pts]} 
+  \marginpar{\small [6 pts]} 
 
 \item Let $X_1,\ldots, X_n \sim P$, i.i.d., with $\mu = \E[X_i]$ and $\sigma^2 = 
   \Var[X_i]$. Define   
@@ -52,34 +52,31 @@ Due Friday February 9 at 5pm}
   \]
 
 (i) Prove that $s_n^2 \pto \sigma^2$.
-\marginpar{\small [1 pt]} 
+\marginpar{\small [2 pts]} 
 
 (ii) Prove that \smash{$\sqrt{n}(\bar{X}_n-\mu)/s_n \dto N(0,1)$}.
-\marginpar{\small [1 pt]} 
+\marginpar{\small [2 pts]} 
 
 \item Let $X  \in \R^d$ and $Y \in \R$.
 
 (i) Prove that $\E[(Y - f(X))^2]$ is minimized at $f(x) = \E[Y|X=x]$.
-\marginpar{\small [1 pt]} 
+\marginpar{\small [2 pts]} 
 
 (ii) Prove that $\E[(Y - X^T \beta)^2]$ is minimized at $\beta = \Sigma^{-1} 
 \alpha$, where $\Sigma = \E[X X^T]$ and $\alpha = \E[Y X]$.
-\marginpar{\small [1 pt]} 
+\marginpar{\small [2 pts]} 
 
-\item This part will involve a small bit of coding. Attach your code in an
-  appendix. 
+\item This part will involve a small bit of coding. Attach your code in an  appendix. 
 
-(i) Simulate Brownian motion on $[0,1]$, and a Brownian bridge on $[0,1]$, and
-plot them. 
-\marginpar{\small [1 pt]} 
+(i) Simulate Brownian motion on $[0,1]$, and a Brownian bridge on $[0,1]$, and plot them. 
+\marginpar{\small [2 pts]} 
 
-(ii) Simulate the 95th percentile of the supremum of the Brownian bridge, i.e.,
-the value $q$ such that   
+(ii) Simulate the 95th percentile of the supremum of the Brownian bridge, i.e., the value $q$ such that   
 \[
 \P\Big( \sup_{t \in [0,1]} B(t)\geq q \Big) = 0.05.
 \]
 where $B(t)$, $t \in[0,1]$ is the Brownian bridge. 
-\marginpar{\small [1 pt]} 
+\marginpar{\small [2 pts]} 
 
 (iii) Draw $X_1,\dots,X_n \sim F$ from any distribution $F$ of your liking
 (uniform, normal, etc.), calculate the Kolmogorov-Smirnov (KS) test statistic    
@@ -89,10 +86,10 @@ where $B(t)$, $t \in[0,1]$ is the Brownian bridge.
   where $F_n$ is the empirical distribution of $X_1,\dots,X_n$, and calculate
   the proportion of times out of (say) 1000 repetitions that $T$ exceeds the 
   threshold $q$ computed in part (ii).  
-\marginpar{\small [2 pts]} 
+\marginpar{\small [4 pts]} 
 \end{enumerate}
 
-\section{Risk analysis for least squares [15 points]}
+\section{Risk analysis for least squares [30 points]}
 
 \def\Bias{\mathrm{Bias}}
 \def\Risk{\mathrm{Risk}}
@@ -103,7 +100,7 @@ In this exercise, we will work on risk calculations for least squares regression
 \item First, we start with an algebraic fact. Suppose that $A,B \succeq 0$, 
   which we write to mean that are positive semidefinite matrices (symmetric with
   nonnegative eigenvalues). Prove that $\tr(AB) \geq 0$. 
-  \marginpar{\small [2 pts]} 
+  \marginpar{\small [4 pts]} 
 
   Hint: there are many ways to prove this, but for one, take an
   eigendecomposition of $B$, and expand the trace as a sum of products involving
@@ -121,19 +118,19 @@ In this exercise, we will work on risk calculations for least squares regression
   \smash{$\hf(x) = x^\T \hbeta$}.  
 
   Follow/reproduce the calculations in the review lecture to show that
-  \marginpar{\small [3 pts]} 
+  \marginpar{\small [6 pts]} 
   \[
   \E\bigg[ \frac{1}{n} \sum_{i=1}^n \Var(\hf(x_i) \,|\, X) \bigg] = \sigma^2   
   \frac{d}{n}, 
   \]
   and that, for an independent draw $x_0$ from the predictor distribution,
-  \marginpar{\small [3 pts]} 
+  \marginpar{\small [6 pts]} 
   \[
   \E[\Var(\hf(x_0) \, | X, x_0)] = \frac{\sigma^2}{n} \tr\Big(\E [X^\T X] \, \E
   [(X^\T X)^{-1}] \Big). 
   \]
   Therefore, using part (a), argue that
-  \marginpar{\small [1 pt]}
+  \marginpar{\small [2 pts]}
   \[
   \E[\Var(\hf(x_0) \, | X, x_0)] \geq \E\bigg[ \frac{1}{n} \sum_{i=1}^n
   \Var(\hf(x_i) \,|\, X) \bigg]. 
@@ -146,7 +143,7 @@ In this exercise, we will work on risk calculations for least squares regression
 
 \item Follow/reproduce the calculations leading up to Theorem 1 in
   \citet{rosset2020from} to prove the inequality: 
-  \marginpar{\small [6 pts]} 
+  \marginpar{\small [12 pts]} 
   \[
   \E[\Bias^2(\hf(x_0) \, | X, x_0)] \geq \E\bigg[ \frac{1}{n} \sum_{\ell=1}^n 
   \Bias^2(\hf(x_i) \,|\, X) \bigg].
@@ -168,7 +165,7 @@ In this exercise, we will work on risk calculations for least squares regression
   X$ is almost surely invertible.  
 \end{enumerate}
 
-\section{Asymptotic scaling of nearest neighbor distances [17 points]} 
+\section{Asymptotic scaling of nearest neighbor distances [34 points]} 
 
 In this exercise, we will analyze the asymptotic scaling of nearest neighbor
 distances.  
@@ -178,7 +175,7 @@ distances.
   $[-R,R]^d$. Let $i(x_0)$ be the index of the closest point (in $\ell_2$
   distance) among $x_{1:n} = \{x_1,\dots,x_n\}$ to $x_0$. Prove that for any
   $\delta > 0$,
-  \marginpar{\small [3 pts]}
+  \marginpar{\small [6 pts]}
   \[
   \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) = \int (1 - P(B_d(x, \delta)))^n \,
   dP(x),
@@ -189,14 +186,14 @@ distances.
 
 \item Let $U_1,\dots,U_{N(\delta)}$ be a rectangular partition of $[-R,R]^d$
   such each $U_j$ has diameter at most $\delta$. Prove that 
-  \marginpar{\small [2 pts]}
+  \marginpar{\small [4 pts]}
   \[
   N(\delta) \leq \frac{c}{\delta^d},
   \]
   where $c>0$ is a constant depending only on $R$ and $d$. 
 
 \item Using parts (a) and (b), prove that 
-  \marginpar{\small [7 pts]}
+  \marginpar{\small [14 pts]}
   \[
   \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \frac{c}{e n \delta^d}.
   \]
@@ -209,7 +206,7 @@ distances.
   Then show that each summand above is bounded by $1/(en)$.
 
 \item Argue that the last part translates to
-  \marginpar{\small [1 pts]}
+  \marginpar{\small [2 pts]}
   \[
   \|x_{i(x_0)} - x_0 \|_2 \lesssim \bigg( \frac{1}{n} \bigg)^{1/d} \quad 
   \text{in probability}.
@@ -218,7 +215,7 @@ distances.
 \item Finally, let $k \geq 0$ be a nonnegative integer, and as in lecture, let  
   $\cN_k(x_0)$ denote the indices of the $k$ closest (in $\ell_2$ distance)
   points among $x_{1:n}$ to $x_0$. Use part (d) to prove that 
-  \marginpar{\small [4 pts]}
+  \marginpar{\small [8 pts]}
   \[
   \frac{1}{k} \sum_{i \in \cN_k(x_0)} \, \|x_i - x_0\|_2 \lesssim \bigg(
   \frac{k}{n} \bigg)^{1/d} \quad \text{in probability}. 
@@ -234,7 +231,7 @@ distances.
  
 \end{enumerate}
 
-\section{Bonus: risk analysis for wavelet denoising [22 points]}
+\section{Bonus: risk analysis for wavelet denoising [44 points]}
 
 \def\ttheta{\tilde\theta}
 \def\TV{\mathrm{TV}}
@@ -260,7 +257,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
   \]
   Here $\lambda \geq 0$ is a tuning parameter. For arbitrary $\lambda$, prove
   that we have the exact risk expression:
-  \marginpar{\small [3 pts]}
+  \marginpar{\small [6 pts]}
   \[
   \E \|\theta - \htheta\|_2^2 = \sum_{\ell=1}^N r(\theta_\ell, \lambda),   
   \]
@@ -276,7 +273,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
 
   \item Prove that for \smash{$\lambda = \tau\sqrt{2\log{N}}$}, we have the risk
     upper bound: 
-  \marginpar{\small [5 pts]}
+  \marginpar{\small [10 pts]}
   \[
     \E \|\theta - \htheta\|_2^2 \leq \tau^2 + (2\log{N}+1) \sum_{\ell=1}^N
     \min\{\theta_\ell^2, \tau^2\}.    
@@ -329,7 +326,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
   from $j=-1$.) Verify that this collection is orthonormal in $L^2$: show that
   the functions are pairwise orthogonal and unit norm, with respect to the $L^2$
   inner product on $[0,1]$,   
-  \marginpar{\small [2 pts]}
+  \marginpar{\small [4 pts]}
   \[
   \langle g, h \rangle = \int_0^1 g(x) h(x) \, dx.
   \]
@@ -337,7 +334,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
     \rangle = \int_0^1 g(x)^2 \, dx$}.)   
 
 \item Explain why it is that we can write
-  \marginpar{\small [1 pt]}
+  \marginpar{\small [2 pts]}
   \[
   \|f - \hf\|_2^2 = \sum_{j,k} (\theta_{jk}(f) - \ttheta_{jk}(y))^2,
   \]
@@ -398,12 +395,12 @@ In this exercise, we will analyze the risk of wavelet denoising.
   that there is a truncation level $j^*$ such that sum of truncation and
   discretization errors satisfy $e_1 + e_2 \leq C/n$, for another constant
   $C>0$.       
-  \marginpar{\small [2 pts]}
+  \marginpar{\small [4 pts]}
 
 \item It remains to study the estimation error. Assume that $n$ is a power of
   2. Show that, starting from the nonparametric regression model
   \eqref{eq:nonpar_model}, we may transform this to a model of the form   
-  \marginpar{\small [3 pts]}
+  \marginpar{\small [6 pts]}
   \[
   z_\ell = \ttheta_\ell(f) + \delta_\ell, \quad \ell=1,\dots,n,
   \]
@@ -431,14 +428,14 @@ In this exercise, we will analyze the risk of wavelet denoising.
   \]
   Use the second inequality in \eqref{eq:besov_condition}, on the empirical
   wavelet coefficients, to establish that for each $j$, 
-  \marginpar{\small [4 pts]}
+  \marginpar{\small [8 pts]}
   \[
   \sum_k \min \bigg\{ \ttheta_{jk}^2(f), \frac{\sigma^2}{n} \bigg\} \leq
   C \frac{\sigma^2}{n} 2^j \min\bigg\{ 1, 2^{-3j/2} \frac{\sqrt{n}}{\sigma}
   \bigg\},  
   \]
   for a constant $C>0$. Show that gives the estimation error bound, 
-  \marginpar{\small [2 pts]}
+  \marginpar{\small [4 pts]}
   \[
   e_3 \leq C \log{n} \bigg( \frac{\sigma^2}{n} \bigg)^{2/3}.
   \]
