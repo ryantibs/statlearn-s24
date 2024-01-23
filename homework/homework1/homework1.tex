@@ -165,7 +165,7 @@ In this exercise, we will work on risk calculations for least squares regression
   X$ is almost surely invertible.  
 \end{enumerate}
 
-\section{Asymptotic scaling of nearest neighbor distances [34 points]} 
+\section{Asymptotic scaling of nearest neighbor distances [32 points]} 
 
 In this exercise, we will analyze the asymptotic scaling of nearest neighbor
 distances.  
@@ -193,7 +193,7 @@ distances.
   where $c>0$ is a constant depending only on $R$ and $d$. 
 
 \item Using parts (a) and (b), prove that 
-  \marginpar{\small [14 pts]}
+  \marginpar{\small [12 pts]}
   \[
   \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \frac{c}{e n \delta^d}.
   \]
@@ -233,7 +233,7 @@ distances.
  
 \end{enumerate}
 
-\section{Bonus: risk analysis for wavelet denoising [44 points]}
+\section{Bonus: risk analysis for wavelet denoising}
 
 \def\ttheta{\tilde\theta}
 \def\TV{\mathrm{TV}}
@@ -259,7 +259,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
   \]
   Here $\lambda \geq 0$ is a tuning parameter. For arbitrary $\lambda$, prove
   that we have the exact risk expression:
-  \marginpar{\small [6 pts]}
+%  \marginpar{\small [6 pts]}
   \[
   \E \|\theta - \htheta\|_2^2 = \sum_{\ell=1}^N r(\theta_\ell, \lambda),   
   \]
@@ -275,7 +275,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
 
   \item Prove that for \smash{$\lambda = \tau\sqrt{2\log{N}}$}, we have the risk
     upper bound: 
-  \marginpar{\small [10 pts]}
+%  \marginpar{\small [10 pts]}
   \[
     \E \|\theta - \htheta\|_2^2 \leq \tau^2 + (2\log{N}+1) \sum_{\ell=1}^N
     \min\{\theta_\ell^2, \tau^2\}.    
@@ -328,7 +328,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
   from $j=-1$.) Verify that this collection is orthonormal in $L^2$: show that
   the functions are pairwise orthogonal and unit norm, with respect to the $L^2$
   inner product on $[0,1]$,   
-  \marginpar{\small [4 pts]}
+%  \marginpar{\small [4 pts]}
   \[
   \langle g, h \rangle = \int_0^1 g(x) h(x) \, dx.
   \]
@@ -336,7 +336,7 @@ In this exercise, we will analyze the risk of wavelet denoising.
     \rangle = \int_0^1 g(x)^2 \, dx$}.)   
 
 \item Explain why it is that we can write
-  \marginpar{\small [2 pts]}
+%  \marginpar{\small [2 pts]}
   \[
   \|f - \hf\|_2^2 = \sum_{j,k} (\theta_{jk}(f) - \ttheta_{jk}(y))^2,
   \]
@@ -397,12 +397,12 @@ In this exercise, we will analyze the risk of wavelet denoising.
   that there is a truncation level $j^*$ such that sum of truncation and
   discretization errors satisfy $e_1 + e_2 \leq C/n$, for another constant
   $C>0$.       
-  \marginpar{\small [4 pts]}
+%  \marginpar{\small [4 pts]}
 
 \item It remains to study the estimation error. Assume that $n$ is a power of
   2. Show that, starting from the nonparametric regression model
   \eqref{eq:nonpar_model}, we may transform this to a model of the form   
-  \marginpar{\small [6 pts]}
+%  \marginpar{\small [6 pts]}
   \[
   z_\ell = \ttheta_\ell(f) + \delta_\ell, \quad \ell=1,\dots,n,
   \]
@@ -430,14 +430,14 @@ In this exercise, we will analyze the risk of wavelet denoising.
   \]
   Use the second inequality in \eqref{eq:besov_condition}, on the empirical
   wavelet coefficients, to establish that for each $j$, 
-  \marginpar{\small [8 pts]}
+%  \marginpar{\small [8 pts]}
   \[
   \sum_k \min \bigg\{ \ttheta_{jk}^2(f), \frac{\sigma^2}{n} \bigg\} \leq
   C \frac{\sigma^2}{n} 2^j \min\bigg\{ 1, 2^{-3j/2} \frac{\sqrt{n}}{\sigma}
   \bigg\},  
   \]
   for a constant $C>0$. Show that gives the estimation error bound, 
-  \marginpar{\small [4 pts]}
+%  \marginpar{\small [4 pts]}
   \[
   e_3 \leq C \log{n} \bigg( \frac{\sigma^2}{n} \bigg)^{2/3}.
   \]
