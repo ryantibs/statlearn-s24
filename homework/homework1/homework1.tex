@@ -5,7 +5,7 @@
 
 \title{Homework 1 \\ \smallskip
 \large Advanced Topics in Statistical Learning, Spring 2024 \\ \smallskip
-Due Friday February 9 at 5pm}
+Due Friday February 9}
 \date{}
 
 \begin{document}
@@ -200,6 +200,7 @@ distances.
   \[
   \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \frac{c}{e n \delta^d}.
   \]
+
   Hint: first show that
   \[
   \P( \|x_{i(x_0)} - x_0 \|_2 > \delta ) \leq \sum_{j=1}^{N(\delta)}
@@ -223,6 +224,7 @@ distances.
   \frac{1}{k} \sum_{i \in \cN_k(x_0)} \, \|x_i - x_0\|_2 \lesssim \bigg(
   \frac{k}{n} \bigg)^{1/d} \quad \text{in probability}. 
   \]
+
   Hint: divide up the set $x_{1:n}$ into $k+1$ subsets, where the first $k$ have
   equal size \smash{$\lfloor n/k \rfloor$}. Let $i(x_0, j)$ denote the index of
   the closest point in subset $j$ to $x_0$. Argue that 
