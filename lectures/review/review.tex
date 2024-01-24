@@ -737,7 +737,7 @@ $X,x_0$. (Note that unbiasedness here doesn't actually require the strong
 assumption of $X,\epsilon$ being independent.) To compute the out-of-sample 
 variance, we again first condition on $X,x_0$:
 \[
-\Var(x_0^\T \hbeta \,|\, X, x_0) = \sigma^2 x_0^\T (X^\T X)^{-1} X^\T \Var(Y|X)
+\Var(x_0^\T \hbeta \,|\, X, x_0) = x_0^\T (X^\T X)^{-1} X^\T \Var(Y|X)
 X (X^\T X)^{-1} x_0 = \sigma^2 x_0^\T (X^\T X)^{-1} x_0.
 \]
 Then integrating over $X,x_0$ gives the out-of-sample risk:
