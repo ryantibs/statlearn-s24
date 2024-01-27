@@ -1,0 +1,1381 @@
+\documentclass{article}
+
+\def\ParSkip{} 
+\input{../../common/ryantibs}
+\DeclareMathOperator*{\esssup}{ess\,sup}
+
+\title{Nonparametric Regression: Splines and RKHS Methods \\ \smallskip
+\large Advanced Topics in Statistical Learning, Spring 2024 \\ \smallskip
+Ryan Tibshirani}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\RaggedRight
+\vspace{-50pt}
+
+Note: we're following the context, problem setup, notation, etc. from the last
+lecture on nonparametric regression.
+
+\section{Regression splines}
+
+Regression splines and smoothing splines are motivated from a different
+perspective than kernels and local polynomials; in the latter case, we started
+off with a special kind of local averaging, and moved our way up to a
+higher-order local models. With regression splines and smoothing splines, we
+build our estimator globally, from a set of select basis functions. 
+
+(We note that, at a broader level, the latter is often called the
+\emph{synthesis} framework for modeling, where we build our estimator from a  
+set of atoms---here being basis functions.) 
+
+\subsection{Splines}
+
+These basis functions, as you might guess, are \emph{splines}. Let's assume that
+$d=1$. We'll stick to the univariate case for a little while, because splines
+are complex and interesting enough in dimension $d=1$. A spline $f$ of degree
+$k$ with knots at $t_1 < \dots < t_r$ is a piecewise polynomial of degree $k$  
+that is continuous and has continuous derivatives of orders $1,\dots,k-1$ at its
+knots. To be clear: 
+\begin{itemize}
+\item $f$ is a polynomial of degree $k$ on each of $(-\infty,t_1], [t_1,t_2],
+  \dots, [t_r,\infty)$; and
+\item $D^\ell f$ is continuous at each of $t_1,\dots,t_r$, for all
+  $\ell=0,\dots,k-1$. 
+\end{itemize}
+
+Splines have some special (some might say amazing) properties, and we will only
+really scratch the surface here. They have been a topic of interest among
+mathematicians and statisticians for a long time. Informally, a spline is a lot
+smoother than a piecewise polynomial, and so modeling with splines can serve as
+a way of reducing the variance of an estimator. See Figure \ref{fig:splines} for
+an illustration.  
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.8\textwidth]{splines.pdf}
+\caption{\it Illustration of the effects of enforcing continuity at the knots
+  for a cubic piecewise polynomial, and for various orders of the derivative.
+  Credit: Chapter 5.2 of \citet{hastie2009elements}.}    
+\label{fig:splines}
+\end{figure}
+
+A bit of statistical folklore: it is said that a cubic spline is so smooth, that
+one cannot detect the locations of its knots by eye! 
+
+\subsection{Spline bases}
+
+How can we parametrize the space of $k\th$ degree splines with knots at 
+$t_1,\dots,t_r$?  The most natural way is to use the \emph{truncated power
+  basis}, $g_1, \dots, g_{r+k+1}$, defined as   
+\begin{equation}
+\begin{gathered}
+\label{eq:tpb}
+g_j(x) = \frac{1}{(j-1)!} x^{j-1}, \quad j=1,\dots,k+1, \\
+g_{j+k+1}(x) = \frac{1}{k!} (x-t_j)^k_+, \quad j=1,\dots,r,
+\end{gathered}
+\end{equation}
+Here $x_+=\max\{x,0\}$ denotes the positive part of $x$. From this we can see
+that the linear space of $k\th$ degree splines with knots at $t_1,\dots,t_r$ has 
+dimension $r+k+1$.
+
+While \eqref{eq:tpb} gives us a simple and natural basis, calculations involving
+truncated power bases functions can be troublesome because the ensuing basis 
+matrix, $G \in \R^{n \times (r+k+1)}$ with entries
+\[
+G_{ij} = g_j(x_i)
+\]
+is generally very poorly conditioned.
+
+A much better computational choice, both for speed and numerical stability, is 
+called the \emph{B-spline basis}. This was a major development in spline theory 
+and is now much the standard in software. The key idea is that B-splines have
+local support: each B-spline basis function for a $k\th$ degree spline space is
+supported on $k+2$ knots. Therefore the corresponding basis matrix is banded. It
+also tends to be much better conditioned.  
+
+Defining B-splines is certainly requires more nuance than the truncated power
+basis, and the precise form of a B-spline is unimportant for the rest of this
+lecture. For completeness, you can find the details behind their construction in
+a supplementary note posted on the course website.
+
+\subsection{Regress away!}
+
+A first idea: let's just perform regression on a spline basis. In other words,
+we use as our working model a $k\th$ degree spline with knots at some pre-fixed 
+locations $t_1,\dots,t_r$. This means expressing $f$ as  
+\[
+f = \sum_{j=1}^{r+k+1} \beta_j g_j
+\]
+where $\beta_1,\dots,\beta_{r+k+1} \in \R$ are coefficients and
+$g_1,\dots,g_{r+k+1}$ is a basis for the space of $k\th$ degree splines over the
+knots $t_1,\dots,t_r$; for example, the truncated power basis or B-spline basis.    
+
+Letting $Y=(y_1,\dots,y_n) \in \R^n$ be the response vector, and $G \in \R^{n
+  \times (r+k+1)}$ the basis matrix with entries   
+\[
+G_{ij} = g_j(x_i),
+\]
+as before, we then just use least squares to determine estimate the
+coefficients, defining \smash{$\hbeta = (\hbeta_1,\dots,\hbeta_{r+k+1})$} to 
+solve 
+\[
+\minimize_\beta \; \sum_{i=1}^n \bigg(y_i -\sum_{j=1}^{r+k+1} \beta_j g_j(x_i) 
+\bigg)^2 \iff \minimize_\beta \; \|Y - G\beta\|_2^2.
+\]
+This yields the \emph{regression spline} estimator, which makes predictions
+according to   
+\[
+\hf(x) = \sum_{j=1}^{r+k+1} \hbeta_j g_j(x).
+\]
+Of course we know that \smash{$\hbeta = (G^\T G)^{-1} G^\T Y$}, so we can write
+this as 
+\[
+\hf(x) = (g_1(x),\dots,g_{r+k+1}(x))^\T (G^\T G)^{-1} G^\T Y = w(x)^\T Y,  
+\]
+which reveals that regression splines are linear smoothers.
+
+This is a classic method, and can work well provided that we choose ``good''
+knots $t_1,\dots,t_r$; but in general choosing knots is a tricky business. There
+is a large literature on knot selection for regression splines via greedy
+methods like recursive partitioning. In practice, smoothing splines seem to be
+more popular, which we cover next.
+
+\section{Smoothing splines}
+
+Before delving into smoothing splines, we need to introduce a variant on the
+usual spline definition given above. To motivate it: a problem with spline
+estimates is that they can have somewhat erractive behavior---translating into
+high variance---at the boundaries of the input domain. (Recall that this is the
+opposite problem to that with kernel smoothing, which had poor bias at the
+boundaries.) This only gets worse as the polynomial order $k$ gets larger.   
+
+\subsection{Natural splines}
+
+One way to remedy this problem is to force the piecewise polynomial function to
+have a lower degree to the left of the leftmost knot, and to the right of the
+rightmost knot---this is exactly what \emph{natural splines} do. A natural
+spline $f$ of degree $k$ with knots at $t_1 < \dots < t_r$ is a piecewise
+polynomial of degree $k$ such that:
+\begin{itemize}
+\item $f$ is a polynomial of degree $k$ on each of $[t_1,t_2], \dots,
+  [t_{r-1},t_r]$; 
+\item $f$ is a polynomial of degree $(k-1)/2$ on $(-\infty,t_1]$ and
+  $[t_r,\infty)$; and 
+\item $D^\ell f$ is continuous at each of $t_1,\dots,t_r$, for all
+  $\ell=0,\dots,k-1$. 
+\end{itemize}
+It is implicit here that natural splines are only defined for an odd degree $k$
+(linear, cubic, etc.) The choice $k=3$ yields a natural cubic spline, by far the
+most common case: this is just a cubic spline that reduces to linear beyond the 
+leftmost and rightmost knots.     
+
+What is the dimension of the span of $k\th$ degree natural splines with knots at
+$t_1,\dots,t_r$? Recall for splines, this was $r+k+1$ (just count the number of
+truncated power basis functions). For natural splines, we can compute this
+dimension by counting as follows:  
+\[
+\underbrace{\vphantom{\Big(\Big)} (k+1)\cdot(r-1)}_{a} \;+\; 
+\underbrace{\Big(\frac{(k-1)}{2}+1\Big) \cdot 2}_{b} \;-\;
+\underbrace{\vphantom{\Big(\Big)} k \cdot r}_{c} \;=\; r. 
+\]
+In the above: 
+\begin{itemize}
+\item $a$ is the number of parameters in the interior intervals $[t_1,t_2],
+  \dots, [t_{r-1},t_r]$; 
+\item $b$ is the number of parameters in the exterior intervals $(-\infty,t_1],
+  [t_r,\infty)$; and 
+\item $c$ is the number of constraints at the knots $t_1,\dots,t_r$.  
+\end{itemize}
+The fact that the total dimension is $r$ is pretty remarkable; this is
+independent of $k$!   
+
+We note that there are simple modifications the truncated power basis that gives
+rise to a basis for natural splines, and similarly a modification of the
+B-spline basis for natural splines. And again, B-splines are the preferred
+parametrization for computational speed and stability. 
+
+\subsection{Smooth away!}
+
+Smoothing splines, at the end of the day, are given by an $\ell_2$-regularized
+regression over a natural spline basis that places knots at all input points 
+$x_1,\dots,x_n$. They circumvent the problem of knot selection because they
+just use all inputs as knots, and they make this possible---starting with a 
+saturated model and producing meaningful function estimates---by using
+regularization to shrink the coefficients in the basis expansion.
+
+Interestingly, we can motivate and define a smoothing spline directly from a
+functional minimization perspective. With input points $x_1,\dots,x_n$ lying in 
+an interval $[a,b]$, the \emph{smoothing spline} estimator \smash{$\hf$}, of a
+given odd integer order $k \geq 1$, is defined to solve   
+\begin{equation}
+\label{eq:ss}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_a^b [D^m f(x)]^2 \,
+dx, \quad \text{where $m=(k+1)/2$}.
+\end{equation}
+This is an infinite-dimensional optimization problem over all functions $f$ for
+the which the criterion is well-defined and finite. The criterion in
+\eqref{eq:ss} trades off the squared error of $f$ over $(x_i,y_i)$,
+$i=1,\dots,n$, with a penalty term that is large when the $(m-1)^{\text{st}}$
+derivative of $f$ is wiggly. The tuning parameter $\lambda \geq 0$ governs the
+tradeoff between these two terms.  
+
+By far the most commonly considered case is $k=3$, the cubic smoothing spline,
+defined via 
+\begin{equation}
+\label{eq:ss_cubic}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_a^b [f''(x)]^2 \, dx.
+\end{equation}
+This is so common that often you'll just hear this called \emph{the} smoothing
+spline. 
+
+\subsection{Representer theorem}
+
+Remarkably, it so happens that the minimizer in the general smoothing spline
+problem \eqref{eq:ss} is unique, and it is a natural $k\th$ degree spline with 
+knots at the input points $x_1,\dots,x_n$! This is known as a \emph{representer
+  theorem} for \eqref{eq:ss} (we will see more such results later). 
+
+Proof: we'll just consider the cubic case, $k=3$, and follow Chapter 2.2 of
+\citet{green1993nonparametric} who give a nice direct proof.   
+% The result for general $k$ will follow from RKHS theory. 
+
+The key result can be stated as follows: if $g$ is any function on $[a,b]$ such
+that the penalty is well-defined (it has two derivatives, its second derivative
+is square integrable), and $x_1,\dots,x_n \in [a,b]$ are arbitrary, then there
+exists a natural cubic spline $f$ with knots at $x_1,\dots,x_n$ such that: 
+\begin{itemize}
+\item $f(x_i) = g(x_i)$, $i=1,\dots,n$; and 
+\item $\int_a^b [f''(x)]^2 \, dx \leq \int_a^b [g''(x)]^2 \, dx$.
+\end{itemize}
+
+This would imply that we can restrict our attention in problem
+\eqref{eq:ss_cubic} to natural splines with knots at $x_1,\dots,x_n$. 
+
+To prove
+the key result, we start with the fact that the cubic natural spline space with
+knots at $x_1,\dots,x_n$ is $n$-dimensional, so given any $n$ points $z_i =
+g(x_i)$, $i=1,\dots,n$, we can always find a natural spline $f$ with knots at
+$x_1,\dots,x_n$ that satisfies $f(x_i) = z_i$, $i=1,\dots,n$. Now define $h =
+g-f$. Consider 
+\begin{align*}
+\int_a^b f''(x) h''(x) \, dx 
+&= f''(x) h'(x) \Big|_a^b - \int_a^b f'''(x) h'(x) \, dx \\
+&= -\int_{x_1}^{x_n} f'''(x) h'(x) \, dx \\ 
+&= -\sum_{i=1}^{n-1} f'''(x) h(x) \Big|_{x_i}^{x_{i+1}} +  
+\int_{x_1}^{x_n} D^4 f(x) h(x) \, dx \\
+&= -\sum_{i=1}^{n-1} f'''(x_i^+) (h(x_{i+1}) - h(x_i)).
+\end{align*}
+In the first line we used integration by parts; in the second line we used the
+fact that $f''(a) = f''(b) = 0$ and $f'''(x)=0$ for $x \leq x_1$ and $x \geq
+x_n$, since $f$ is a natural spline; in the third line we used integration by
+parts again; in the fourth we used the fact that $f'''$ is constant on each open
+interval $(x_i,x_{i+1})$, and that $D^4 f=0$, again because $f$ is a natural
+spline. Since each $h(x_i)=0$, we conclude from the last display that
+\[
+\int_a^b f''(x) h''(x) \, dx = 0.
+\]
+From this, it follows that
+\[
+\int_a^b [g''(x)]^2 \, dx 
+= \int_a^b \big[ f''(x) + h''(x) \big]^2 \, dx 
+= \int_a^b [f''(x)]^2 \, dx + \int_a^b [h''(x)]^2 \, dx
+\]
+since the cross term is zero, and therefore 
+\[
+\int_a^b [f''(x)]^2 \, dx \leq \int_a^b [g''(x)]^2 \, dx,
+\]
+with equality if and only if $h''(x)=0$ for all $x \in [a,b]$. Note that $h''=0$
+implies that $h$ must be linear, and since we already know that $h(x_i)=0$ for
+all $i=1,\dots,n$, this is equivalent to $h=0$. In other words, the last display
+holds strictly except when $g=f$, so the solution in \eqref{eq:ss_cubic} is
+uniquely a natural spline with knots at the inputs. 
+
+\subsection{Finite-dimensional form}
+
+From the representer result, we can choose a basis $\eta_1,\dots,\eta_n$ for the
+set of $k\th$ degree natural splines with knots at $x_1,\dots,x_n$, and
+reparametrize the problem \eqref{eq:ss} as  
+\begin{equation}
+\label{eq:ss_finite_dim1}
+\minimize_\beta \; \sum_{i=1}^n \bigg( y_i - \sum_{j=1}^n \beta_j \eta_j(x_i)
+\bigg)^2 + \lambda \int_a^b \bigg( \sum_{j=1}^n \beta_j D^m \eta_j(x) \bigg)^2
+\, dx.  
+\end{equation}
+This is a finite-dimensional problem, and after we solve for the coefficients
+\smash{$\hbeta \in \R^n$}, the smoothing spline estimator is simply given by  
+\[
+\hf(x) = \sum_{j=1}^n \hbeta_j \eta_j(x).
+\]
+Defining the basis matrix $N \in \R^{n \times n}$ and penalty matrix $\Omega \in
+\R^{n \times n}$ to have entries
+\[
+N_{ij} = \eta_j(x_i), \quad 
+\Omega_{ij} = \int_a^b D^m \eta_i(x) D^m \eta_j(x) \, dx,
+\]
+the problem in \eqref{eq:ss_finite_dim1} can be written more succintly as 
+\begin{equation}
+\label{eq:ss_finite_dim2}
+\minimize_\beta \; \|Y - N\beta\|_2^2 + \lambda \beta^\T \Omega \beta,   
+\end{equation}
+which a type of generalized ridge regression problem. From
+\eqref{eq:ss_finite_dim2}, it is not hard to see that the solution has the
+explicit form \smash{$\hbeta = (N^\T N + \lambda \Omega)^{-1} N^\T Y$}, and
+thus, we can write the smoothing spline as    
+\[
+\hf(x) = (\eta_1(x),\dots,\eta_n(x))^\T (N^\T N + \lambda \Omega)^{-1} N^\T Y =
+w(x)^\T Y,   
+\]
+which means, once again, smoothing splines are linear smoothers.
+
+A remark on computation: the coefficients \smash{$\hbeta = (N^\T N + \lambda 
+  \Omega)^{-1} N^\T Y$} can be computed in $O(n)$ operations. For this, we form  
+$N$ using the B-spline basis (for natural splines), since then the matrix $N^\T
+N + \Omega I$ will be banded. In fact, more specialized computations are
+possible by taking advantage of more precise structure (beyond bandedness)
+afforded by splines. Altogether, in practice, smoothing spline computations are 
+extremely fast. 
+
+% \subsection{Reinsch form}
+
+% The vector of fitted values \smash{$\hat{Y} = (\hf(x_1),\dots,\hf(x_n)) \in
+%   \R^n$}  from the smoothing spline can be written as
+% \[
+% \hat{Y} = N(N^\T N + \lambda \Omega)^{-1} N^\T Y.
+% \]
+% It is informative to rewrite this in what is called Reinsch form,
+% \begin{align*}
+% \hat{Y} 
+% &= N\Big(N^\T (I + \lambda N^{-\T} \Omega N^{-1}) N \Big)^{-1} N^\T Y \\
+% &= (I+\lambda Q)^{-1} Y,
+% \end{align*}
+% where $Q = N^{-\T} \Omega N^{-1}$. Note that $Q$ does not depend on $\lambda$.
+% Thus if we compute an eigendecomposition $Q = U \Sigma U^\T$, then the
+% eigendecomposition of the smoother matrix \smash{$S = (I+\lambda Q)^{-1}$} is   
+% \[
+% S = \sum_{j=1}^n \frac{1}{1+\lambda \sigma_j} u_ju_j^\T,
+% \]
+% where $\Sigma=\mathrm{diag}(\sigma_1,\dots,\sigma_n)$. Therefore, once more, the
+% smoothing spline fitted values can be expressed as  
+% \[
+% \hat{Y} = \sum_{j=1}^n \frac{u_j^\T Y}{1+\lambda \sigma_j} u_j.
+% \]
+% The interpretation we may gather is as follows: smoothing splines perform a 
+% regression on the orthonormal set $u_1,\dots,u_n \in \R^n$, but they shrink
+% the coefficients, with more shrinkage applied to an eigenvector $u_j$ that
+% corresponds to a large eigenvalue $\sigma_j$.  
+
+% What exactly are these vectors $u_1,\dots,u_n$? These are referred to as the 
+% \emph{Demmler-Reinsch basis}, and some nice properties of theirs can be 
+% worked out analytically \citep{demmler1975oscillation}. In a nutshell: the
+% eigenvectors $u_j$ that correspond to smaller eigenvalues $\sigma_j$ are
+% smoother, and so with smoothing splines, we shrink less in their direction. Or
+% to put it differently, by increasing $\lambda$ in the smoothing spline
+% estimator, we are tuning out the more wiggly components. See Figure
+% \ref{fig:reinsch}. 
+
+% \begin{figure}[tbp]
+% \centering
+% \includegraphics[width=0.495\textwidth]{reinsch_basis.pdf}
+% \includegraphics[width=0.495\textwidth]{reinsch_weight.pdf}
+% \caption{\it Insights from the Reinsch form of the cubic smoothing spline, for
+%   an example with $n=50$ input points. Left: the bottom 8 eigenvectors of $Q$,
+%   drawn using a color gradient where purple means the smallest eigenvalue, and
+%   light blue the largest eigenvalue. We see that smoother eigenvectors
+%   correspond to lower eigenvalues. Right: the shrinkage weights
+%   $w_j=1/(1+\lambda \sigma_j)$, $j=1,\dots,n$ for 8 values of $\lambda$, again
+%   drawn using a color gradient where purple means the largest $\lambda$, and
+%   light blue the smallest $\lambda$. For larger $\lambda$, the weights decay
+%   faster, so the smoothing spline estimator more strongly filters out wiggly
+%   components.}         
+% \label{fig:reinsch}
+% \end{figure}
+
+\subsection{Equivalent kernel}
+
+Recall that we can write a smoothing spline prediction as \smash{$\hf(x) = 
+  w(x)^\T Y$}, for a weight function  $w(x) = (w_1(x), \dots, w_n(x)) \in \R^n$.
+We know the analytic form of this weight function, but how about its qualitative
+behavior? To be more precise, if we denote each component function by $w_i(x) =
+w(x, x_i)$ to emphasize that this weight gets attributed to $(x_i, y_i)$ in the
+weighted sum \smash{$w(x)^\T Y = \sum_{i=1}^n w(x, x_i) y_i$} which gives us the
+smoothing spline prediction at $x$, then we can ask the following questions:         
+\begin{itemize}
+\item What shape does $z \mapsto w(x, z)$ have? Is it kernel-like?
+\item Does this shape change as we vary the test point $x$? 
+\end{itemize}
+
+It's easy to just read off the answers to these questions from the rows of the
+smoother matrix $S = N(N^\T N + \lambda \Omega)^{-1} N^\T$, since in our
+expanded notation, its elements are
+\[
+S_{ij} = w_j(x_i) = w(x_i, x_j).
+\]
+Now, something very interesting happens when we plot a few rows of $S$. For
+evenly-spaced inputs, they look like the translations of the same kernel: see
+the left panel of Figure \ref{fig:ss_kernel}. Even more interestingly, for
+unevenly-spaced inputs, the rows still have a kernel shape but now the bandwidth
+appears to adapt to the density of the input points: lower density, larger
+bandwidth. See the right panel of Figure \ref{fig:ss_kernel}.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.495\textwidth]{ss_kernel1.pdf}
+\includegraphics[width=0.495\textwidth]{ss_kernel2.pdf}
+\caption{\it Three sample rows of the cubic smoothing spline operator $S$
+  defined over $n=500$. Left: evenly-spaced inputs on a grid. The weights look
+  like they are given by translations of the same kernel. Right: inputs drawn
+  i.i.d.\ from $N(0.5, 0.01)$. The weights still look like kernels, but the
+  bandwidth is now larger in low-density regions of the input domain.}     
+\label{fig:ss_kernel}
+\end{figure}
+
+What we are seeing is an empirical validation of a beautiful asymptotic result
+by \citet{silverman1984spline}, who proved that the cubic smoothing spline
+estimator is asymptotically equivalent to a kernel regression estimator, with an 
+unusual choice of kernel. Specifically, under suitable regularity conditions, we
+have the large $n$ approximation,\footnote{Silverman actually shows that
+  \smash{$w(x, z) \approx \frac{1}{h(z)} \frac{1}{p(z)} K( \frac{x-z}{h(z)})$},
+  but the version we are stating has a more natural interpretation with respect
+  to Figure \ref{fig:ss_kernel}, and is a consequence of symmetry of the
+  smoother matrix $S$.}  
+\[
+w(x, z) \approx \frac{1}{h(x)} \frac{1}{p(x)} K\bigg( \frac{x-z}{h(x)} \bigg), 
+\]
+where $K$ is the ``Silverman kernel'': 
+\[
+K(t) = \frac{1}{2} \exp(-|t|/\sqrt{2}) \sin(|t|/\sqrt{2} + \pi/4), 
+\]
+and we have the local bandwidth: 
+\[
+h(x) = \bigg[ \frac{\lambda}{p(x)} \bigg]^{1/4},
+\]
+where $p(x)$ is the density of the input distribution at $x$. That is, the
+bandwidth adapts to the local distribution of inputs. 
+
+The Silverman kernel is ``kind of'' a higher-order kernel. It satisfies 
+\[
+\int K(t) \, dt = 1, \quad
+\int t^j K(t) \, dt = 0, \; j=1,\dots,3, 
+\quad \text{but} \quad 
+\int t^4 K(t) \, dt = -24.
+\]
+So it lies outside the scope of usual kernel analysis. There is a lot more work
+building off of Silverman's initial work that connects smoothing splines to
+equivalent kernels. 
+
+\subsection{Rate of convergence} 
+
+Compared to that for kNN and kernel smoothing, the error analysis for smoothing
+splines is more nuanced. Hence we'll dedicate a whole lecture to learning the
+tools behind it, a bit later in the course. The upshot is that we'll learn a
+general framework, and accompanying probabilistic tools, that can be used 
+to analyze numerous other nonparametric estimators (such as other penalized 
+empirical risk minimizers).        
+
+The punchline for smoothing splines will be as follows. If we assume that $f_0
+\in W^{m,2}(L; [0,1])$ for a constant $L>0$, we write to mean that $D^m f_0$
+exists in the weak sense (to be defined precisely below) and \smash{$\int_0^1
+  [D^m f_0(x)]^2 \, dx \leq L^2$}, and we assume mild conditions on the input 
+points and sub-Gaussian noise, then the smoothing spline estimator of degree
+$k=2m-1$ with tuning parameter \smash{$\lambda \asymp n^{1/(2m+1)}$} satisfies    
+\[
+\max \Big\{ \|\hf - f_0\|_n^2 , \, \|\hf - f_0\|_2^2 \Big\} \lesssim
+n^{-2m/(2m+1)} \quad \text{in probability},
+\]
+with respect to randomness in the draws of $(x_i,y_i)$, $i=1,\dots,n$. 
+
+\section{Sobolev theory*}
+
+In somewhat of an interlude, we use this section to introduce Sobolev
+spaces. This material can be mostly skipped without interrupting the flow of
+understanding the main ideas in the rest of this lecture, hence the
+asterisk. Well actually, you should probably read the definition of weak 
+differentiability, but you can treat the rest as optional. Yes, optional, but
+also super interesting and fairly fundamental in many ways, which is why we
+include some of the core details of Sobolev spaces here. To learn more, an
+excellent reference is \citet{evans2010partial}.  
+
+\subsection{Weak derivatives}
+
+First we introduce what is known as \emph{weak differentiability}. A function $f
+: U \to \R$, where $U \subseteq \R^d$ is an open set, is called weakly
+differentiable provided that there is some function $g : U \to \R^d$ such that
+\begin{equation}
+\label{eq:weak_derivative}
+\int_U f(x) D \phi(x) \, dx = - \int_U g(x) \phi(x) \, dx,
+\quad \text{for all $\phi \in C_c^\infty(U)$}, 
+\end{equation}
+where $C_c^\infty(U)$ is the set of all infinitely differentiable functions with
+compact support in $U$, and $D\phi$ is the derivative of one such function
+$\phi$. The function $g$ satisfying \eqref{eq:weak_derivative} is unique almost
+everywhere, and denoted by $Df$ henceforth, called the weak derivative of $f$.
+
+The motivation for this definition of weak differentiability is integration by
+parts: if $f,\phi$ are differentiable in the classical (usual) sense, then
+\smash{$\int_U f(x) D \phi(x) \, dx = - \int_U Df(x) \phi(x) \, dx$} by
+integration by parts (applied componentwise), where there are no boundary terms
+because $\phi$ has compact support. Thus, we define the weak derivative $g = Df$
+such that this holds for all infinitely differentiable compactly-supported
+$\phi$.
+
+Higher-order derivatives follow similarly. For a multi-index $\alpha =
+(\alpha_1,\dots,\alpha_d) \in \Z^d_+$, recall, we write $|\alpha| = \alpha_1 +
+\cdots + \alpha_d$ and we denote   
+\[
+D^\alpha \phi = \frac{\partial^{|\alpha|} \phi}{\partial x_1^{\alpha_1} \partial 
+  x_2^{\alpha_2} \dots \partial x_d^{\alpha_d}},
+\]
+interpreted in the classical (usual) sense for a function $\phi$. In the weak
+sense, $f$ is said to have $\alpha\th$ weak differentiable $g$ if 
+\begin{equation}
+\label{eq:weak_derivative_alpha}
+\int_U f(x) D^\alpha \phi(x) \, dx = - (1)^{|\alpha|} \int_U g(x) \phi(x) \, dx,
+\quad \text{for all $\phi \in C_c^\infty(U)$}.   
+\end{equation}
+Again, the function $g$ satisfying \eqref{eq:weak_derivative_alpha} is unique
+almost everywhere, and we denote by $D^\alpha f$.
+
+Of course, the weak derivative reduces to the classical derivative exists when
+the latter exists. However, weak differentiability is more general. An example
+of a function that is weakly differentiable but not classically differentiable
+is
+\[
+f(x) = x_+, \quad \text{with weak derivative $Df(x) = 1\{x > 0\}$.} 
+\]
+An example of a function that is \emph{not} weakly differentiable is $f(x) =
+1\{x > 0\}$. For this, one can check that the condition
+\eqref{eq:weak_derivative} cannot hold: taking $\phi$ to be any function whose
+support includes 0, we learn that
+\[
+\phi(0) = \int g(x) \phi(x) \, dx.
+\]
+This cannot possibly be true for all infinitely differentiable $\phi$. This
+cannot possibly be true for all $\phi$ unless $g=0$. But if $g=0$, then we
+cannot recover $\phi(0)$ through integration, since the right-hand side above
+will always be 0.   
+
+\subsection{Sobolev spaces}
+
+We are now equipped to define what are called \emph{Sobolev spaces}. For an
+integer $k \geq  0$, and $1 \leq p \leq \infty$, and an open domain $U \subseteq 
+\R^d$, we define the Sobolev space        
+\[
+W^{k,p}(U) = \Big\{ f : U \to \R \,:\, \text{$D^\alpha f$ exists in the weak
+  sense, and $\|D^\alpha f\|_p < \infty$ for all $|\alpha| \leq k$} \Big\}. 
+\]
+Here $\|\cdot\|_p$ denotes the $L^p$ norm on $U$: 
+\[
+\|f\|_p^p = \int_U |f(x)|^p \, dx \quad \text{for $p < \infty$}, 
+\]
+and \smash{$\|f\|_\infty = \esssup_{x \in U} \, |f(x)|$} (the essential
+supremum, the smallest upper bound possible over all subsets of $U$ of full
+measure).
+
+Sobolev spaces are central in the study of partial differential equations, which
+is commonly where you'll find people (mathematicians) referring to them. But
+they also play an important role in nonparametric statistics. For example, if
+you recall the smoothing spline problem \eqref{eq:ss}, where we said that ``the
+minimization is all functions $f$ for the which the criterion is well-defined
+and finite'', we can actually take the domain here to be the $L^2$ Sobolev 
+space\footnote{We'll ignore here, and in several other places, the fact that 
+  the domain is closed. Recall, we defined Sobolev spaces on open domains, 
+  and we will do the same for H{\"o}lder spaces as well. Hence, we are being 
+  slightly imprecise by abruptly allowing closed domains but it's easiest to do 
+  so for simplicity of exposition.}    
+\[
+W^{m,2}([a,b]) = \Big\{ f : [a,b] \to \R \,:\, \text{$D^\alpha f$ exists in the
+  weak sense, and $\|D^\alpha f\|_2^2 < \infty$, for all $\alpha \leq m$}
+\Big\}.     
+\]
+
+We note that, generally speaking, when working in Sobolev spaces (just like
+$L^p$ spaces), we identify two functions that are equal almost everywhere. In 
+other words, each element $f$ in a Sobolev space is really an equivalence class
+of functions, any pair of which agree except on a set of measure zero.
+
+Now we recall \emph{H{\"o}lder spaces}. We touched on these in the lecture on 
+kernels. Formally, for an integer $r \geq 0$, and $0 < \gamma \leq 1$, we define
+the H{\"o}lder space
+\begin{multline*}
+C^{r+\gamma}(U) = \Bigg\{ f : U \to \R \,:\, \text{$D^\alpha f$ exists,
+  $\|D^\alpha f\|_\infty < \infty$ for all $|\alpha| \leq r$, and} \\   
+  \sup_{x \not= z} \, \frac{|D^\alpha f(x) - D^\alpha f(z)|}{\|x-z\|_2^\gamma} < 
+  \infty \; \text{for all $|\alpha| = r$} \bigg\}.   
+\end{multline*}
+In the above, we can interpret $D^\alpha f$ as a classical derivative, and
+$\|\cdot\|_\infty$ as the supremum norm (we don't need the essential supremum
+norm). This may all seem more restrictive than Sobolev spaces, but as we'll
+discuss just below, we can actually identify the H{\"o}lder space with a
+particular Sobolev space.       
+
+Let's pause to examine the relationship between the Sobolev space
+$W^{k,\infty}(U)$ and the H{\"o}lder space $C^k(U)$. The former contains all
+functions $f$ such that the $\alpha\th$ weak derivative of $f$ is bounded for
+all $|\alpha| \leq k$. The latter contains all functions $f$ such that the
+$\alpha\th$ derivative of $f$ is bounded for all $|\alpha| < k$, and $D^\alpha
+f$ Lipschitz for $|\alpha| = k$. It turns out that these two conditions are
+really saying the same thing. Trying to make this statement precise for general
+domains is probably not worth it, so we'll just say that for a bounded domain
+$U$ with smooth boundary, we can identify $W^{k,\infty}(U)$ with $C^k(U)$. To be
+precise, in doing so, we identify each $f$ in the Sobolev space with its
+classically differentiable version.  
+
+% Theorem 4 in Chapter 5.8 of Evans (2010), requires U to be open and bounded
+% with C^1 boundary
+
+Much more can be said about the connection between Sobolev and H{\"o}lder
+spaces, which is covered next.
+
+\subsection{Embedding theorems}
+
+Among the whole optional part of material on Sobolev spaces, this next bit   
+really is the \emph{most} optional, but it's too cool not to cover. We start by
+defining norms on Sobolev and H{\"o}lder spaces; namely,
+\[
+\|f\|_{W^{k,p}(U)} = 
+\begin{dcases} 
+\Bigg( \sum_{|\alpha| \leq k} \|D^\alpha f\|_p^p \Bigg)^{1/p} & \text{if $p <
+  \infty$} \\
+\;\;\; \sum_{|\alpha| \leq k} \|D^\alpha f\|_\infty & \text{if $p = \infty$}   
+\end{dcases}
+\qquad \text{for $f \in W^{k,p}(U)$},
+\]
+and 
+\[
+\|f\|_{C^{r+\gamma}(U)} = \sum_{|\alpha| \leq r} \|D^\alpha f\|_\infty +
+\sum_{|\alpha| = r} \sup_{x \not= z} \, \frac{|D^\alpha f(x) - D^\alpha f(z)|} 
+{\|x-z\|_2^\gamma}
+\qquad \text{for $f \in C^{r+\gamma}(U)$}. 
+\] 
+Equipped with these norms, $W^{k,p}(U)$ and $C^{r+\gamma}(U)$ are Banach 
+spaces (complete normed linear spaces). In fact, when $p=2$, the space
+$W^{k,p}(U)$ is a Hilbert space (complete inner product space) under the inner
+product \smash{$\langle f, g \rangle_{W^{k,p}(U)}   
+= \sum_{|\alpha| \leq k} \langle D^\alpha f, D^\alpha g \rangle_2 
+= \sum_{|\alpha| \leq k} \int_U D^\alpha f(x) D^\alpha g(x) \, dx$.}
+
+Now here comes the cool part, which are special inequalities\footnote{In an
+  unfortunate clash of nomenclature with statistics, you'll often hear
+  mathematicians calling these ``estimates''.} involving Sobolev norms that lead 
+to what are known as \emph{embedding theorems}. There are really several
+embedding theorems that were developed over many years, by different authors
+(Gagliardo, Nirenberg, Sobolev, Morrey, others), but now the totality of them is
+usually just called ``the Sobolev embedding theorem''. In a nutshell, this is
+what it says (recall $d$ is the dimension of the domain $U$; and we're
+intentionally vague about what conditions it needs to satisfy).  
+
+\paragraph{The case $pk < d$, subcritical regime.}
+
+In this case we a have lower smoothness-to-dimension ratio. Let $0 \leq \ell <
+k$ be an integer, and $p < q < \infty$, such that the pair satisfies   
+\[
+\frac{1}{q} - \frac{\ell}{d} = \frac{1}{p} - \frac{k}{d}.
+\]
+Then we have, for a constant $C>0$ depending only on $k,p,\ell,q$ and $U$, 
+\[
+\|f\|_{W^{\ell,q}(U)} \leq C \|f\|_{W^{k,p}(U)}, \quad \text{for all $f \in
+  W^{k,p}(U)$}.
+\]
+This means that $W^{k,p}(U) \subseteq W^{\ell,q}(U)$, and moreover we have what 
+is known as a \emph{continuous embedding} of normed spaces. From the above    
+inequality, we learn that any norm ball of radius $\rho$ in the former space
+is contained in a normal ball of the latter, whose radius is at most $C\rho$.
+
+Note that in the special case where we take $\ell = 0$, we get that for  
+\[
+q = \frac{pd}{d-pk},
+\]
+and a constant $C>0$ depending only on $k,p,q$ and $U$, it holds that 
+\[
+\|f\|_q \leq C \|f\|_{W^{k,p}(U)}, \quad \text{for all $f \in W^{k,p}(U)$}. 
+\]
+This means that $W^{k,p}(U) \subseteq L^q(U)$, and the embedding is continuous.  
+
+% Theorems 2 and 6 in Chapter 5.6 of Evans (2010), requires U to be open and
+% bounded with C^1 boundary, doesn't actually state the result for general \ell,
+% only for \ell = 0 
+
+% However, I think boundedness is only needed for compactness. Because Chapter
+% 11 of Leoni (2009) proves continuous embeddings on all on \R^d
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\textwidth]{sobolev.pdf}
+\caption{\it Illustrations of the Sobolev embedding theorem. In each plot, we 
+  parametrize the x-axis by $1/p$ and the y-axis by $k$. Hence, as we move
+  right-to-left, we increase the index of the $L^p$ norm that is used to measure 
+  integral smoothness, and functions get less ``locally peaked'' and more 
+  ``evenly spread out''. As we move top-to-bottom, we decrease the number of
+  (weak) derivatives under consideration. Left: subcritical regime with $pk <
+  d$. We traverse a line of slope $d$, moving down and to the left, in order to
+  visit the different Sobolev spaces into which $W^{k,p}(U)$ embeds, culminating
+  in an intersection with the x-axis ($k=0$) at $q = pd/(d-pk)$. Right:
+  supercritical regime with $pk > d$. Similarly, we traverse a line of slope $d$
+  to find the H{\"o}lder space into which $W^{k,p}(U)$ embeds, which is given by
+  an intersection with the y-axis ($q = \infty$). The open white circles denote
+  cases in which the embedding fails for $\gamma = 1$.}  
+\label{fig:sobolev}
+\end{figure}
+
+\paragraph{The case $pk > d$, supercritical regime.}
+
+In this case we a have higher smoothness-to-dimension ratio. Let $0 \leq r < k$
+be an integer, and $0 < \tau \leq 1$, such that the pair satisfies 
+\[
+\frac{r+\tau}{d} = \frac{k}{d} - \frac{1}{p}.
+\]
+A technical detail: if the value of $r,\tau$ satisfying the above results in
+$\tau = 1$, then we need to ``downgrade'' it to a value less than 1. That is,
+let $\gamma = \tau$ if $\tau < 1$, and otherwise let $0 < \gamma < 1$. Then we
+have, for a constant $C>0$ depending only on $k,p,r,\gamma$ and $U$,       
+\[
+\|f\|_{C^{r+\gamma}(U)} \leq C \|f\|_{W^{k,p}(U)}, \quad \text{for all $f \in
+  W^{k,p}(U)$}. 
+\]
+This means that $W^{k,p}(U) \subseteq C^{r+\gamma}(U)$, and the embedding is
+continuous. In view of this, we can always identify each function $f \in
+W^{k,p}(U)$ with its $r$ times classically differentiable version.     
+
+% Theorems 5 and 6 in Chapter 5.6 of Evans (2010), requires U to be open and 
+% bounded with C^1 boundary, doesn't quite state the result the same way we do 
+
+% But same comment applies about \R^d being fine for continuous embedding 
+
+\medskip
+(The critical regime $pk = d$ is actually a bit more subtle and we'll skip over
+it.)  
+
+How do we interpret the Sobolev embedding theorem? In the subcritical regime, it
+says that we can trade off smoothness in the differential sense with smoothness
+in the integral sense. Given a $k$ times (weakly) differentiable function, whose
+derivatives are in $L^p(U)$, the embedding theorem tells us that its derivatives
+of order $\ell < k$ are less ``peaky'' and more ``evenly spread out'', since
+they are $L^q(U)$ with $q > p$.
+In the supercritical regime, the conclusion is arguably even more
+fascinating---it says that knowing a function's derivatives are smooth in a
+global (integrated) sense tells us something about local smoothness of lower
+order derivatives, at each point in the domain. Given a $k$ times (weakly)
+differentiable function, the embedding theorem starts off with a statement about
+the size of \smash{$\sum_{|\alpha| \leq k} \int_U |D^\alpha f(x)|^p \, dx$}, and
+translates this into a statement about the H{\"o}lder constant of $D^\alpha f$
+for $|\alpha| < k$.      
+Figure \ref{fig:sobolev} gives an illustration of the tradeoffs navigated by the
+Sobolev embedding theorem (these types of plots are sometimes called ``DeVore
+diagrams'' in honor of Ron DeVore).   
+
+\section{Multivariate splines}
+
+We move on to methods for fitting multivariate splines in nonparametric
+regression. In a sense, both of the following statements are true. 
+
+\begin{enumerate}
+\item There are several multivariate extensions of spline estimators: e.g,
+  tensor product splines and thin plate splines (among others). We'll cover
+  these. 
+\item There are no real multivariate extensions of spline estimators: tensor
+  product splines and thin plate splines are not ``really'' splines. In fact,
+  even defining a multivariate spline is generally very tricky. 
+\end{enumerate}
+
+How can this be? Let's go about this backwards, and start by explaining the very
+last part of the second point: suppose you were to (reasonably) insist that a 
+multivariate spline should be, like a univariate spline, a piecewise polynomial
+of a degree $k$ that is $C^{k-1}$, which means it has continuous derivatives of
+all orders less than $k$. Then in general this is going to be tricky to fulfill
+when $d \geq 2$. This is essentially due to the number in the number of
+constraints such continuity imposes in the multivariate setting. Recall that a
+$k\th$ degree polynomial in $d$ dimensions is of the form (using multi-index
+notation $\alpha = (\alpha_1,\dots,\alpha_d) \in \Z^d_+$):
+\begin{equation}
+\label{eq:polynomial}
+f(x) = \sum_{|\alpha| \leq k} \beta_\alpha \, x_1^{\alpha_1} x_2^{\alpha_2}
+\dots x_d^{\alpha_d},
+\end{equation}
+for coefficients $\beta_\alpha$, $|\alpha| \leq k$. The number of coefficients,
+and hence the dimension of the space of $k\th$ degree polynomials in $d$
+dinensions, is
+\[
+\sum_{\ell=0}^k {d-1+\ell \choose \ell} = {d + k \choose k}.
+\]
+Now let's just think about cubic degree $k=3$ in dimension $d=2$, and try to  
+understand the claim that it's tricky to construct a $C^2$ piecewise cubic,
+when we consider the ``pieces'' to be triangles. In fact, it's already going to
+be hard enough to construct a $C^1$ piecewise cubic. Suppose that we have two  
+triangles sharing an edge $e$. Then on each triangle we have \smash{${5 \choose  
+    2} = 10$} parameters to define the cubic, and hence 20 parameters in
+total. Denoting by $f,g$ the two cubics on our adjacent triangles, the $C^1$ 
+condition says that
+\[
+D^\alpha f(x) = D^\alpha g(x), \quad \text{for all $|\alpha| \leq 1$ and all $x
+  \in e$}. 
+\] 
+It can be shown that this reduces to 10 constraints on the coefficients; but
+importantly, the structure of these constraints is such that, for a given set of
+values at the vertices of the triangles, it is unclear whether there will exist
+a set of coefficients that satisfies the constraints \emph{and} meets the
+prescribed values at the vertices. This basically happens because the linear 
+constraints are all entangled. Figure \ref{fig:c1_constraints} gives an
+illustration.    
+
+To get around this problem we have to increase the degree of the polynomial. As
+it turns out, for quintic degree $k=5$, this problem doesn't occur for two
+adjacent triangles in dimension $d=2$, and we get what is sometimes called a
+``free'' $C^1$ smoothness condition, where this kind of entanglement of
+constraints doesn't happen. One can ask: in dimension $d$, what is the
+requirement on the degree $k$ (for a generic partition of points into simplices)
+such that we get a ``free'' $C^s$ smoothness condition? The answer is,
+disappointingly,              
+\[
+k \geq s(d+1) + d.
+\]
+We see that for ``free'' $C^1$ smoothness when $d=2$, the minimal degree is
+indeed $k=5$, and when $d=3$ it is $k=7$. This seems very wasteful.   
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.5\textwidth]{c1_cubic.png}
+\caption{\it Illustration of the constraints for $C^1$ smoothness, for a cubic
+  on each triangle. Credit: \citet{deboor2009way}. A polynomial of an arbitrary
+  degree on a triangle can be written be in what is called a B-form (as an
+  expansion of what are called Bernstein basis polynomials), whose coefficients
+  can be assigned to anchor points, drawn above as blue circles. The set of
+  coefficients that are tied together in a linear equation needed for $C^1$
+  smoothness are highlighted as a red quadrilateral. We can see that the linear
+  systems are entangled, since pairs of them overlap at an anchor point.}     
+\label{fig:c1_constraints}
+\end{figure}
+
+This is not a complete show-stopper for multivariate splines and there is much
+more to the story than this but we'll not travel down this path. To learn more,
+two definitive references are \citet{deboor1993box, lai2007spline}, and
+\citet{deboor2009way} is a lighter, enjoyable review.    
+
+\subsection{Tensor product splines}
+
+One way forward in the multivariate setting is just to take tensor
+products. Recall, a tensor product of two univariate functions $f_1,f_2$ on
+$[a,b]$ is denoted $f_1 \otimes f_2$, which is the function on $[a,b]^2$ defined
+as  
+\[
+(f_1 \otimes f_2)(x_1, x_2) = f_1(x_1) f_2(x_2). 
+\]
+Similarly, for any collection of $q \geq 2$ functions $f_1,\dots,f_q$, we can
+define the tensor product $f_1 \otimes f_2 \otimes \cdots \otimes f_q$ as a
+function 
+\[
+(f_1 \otimes f_2 \otimes \cdots \otimes f_q)(x_1, x_2, \dots, x_q) = f_1(x_1) 
+f_2(x_2) \dots f_q(x_q).
+\]
+
+Thus given a $k\th$ degree spline basis with $r$ knots $t_1,\dots,t_r$, which we
+denote by $g_1,\dots,g_N$ for $N=r+k+1$, we can take all $d$-way tensor
+products to form collection of functions on $[a,b]^d$:
+\[
+g_{j_1} \otimes g_{j_2} \otimes \cdots \otimes g_{j_d}, \quad \text{for all
+  $\ell = (j_1, j_2, \dots, j_d) \in [N]^d$}, 
+\]
+where we use the abbreviation $[N] = \{1,\dots,N\}$. By construction the linear
+span of this collection, i.e., functions of the form    
+\[
+f(x) = \sum_{j \in [N]^d} \beta_j \, g_{j_1}(x_1) \otimes \cdots \otimes 
+g_{j_d}(x_d),   
+\]
+for coefficients $\beta_j$, $j \in [N]^d$, generates the space of tensor 
+product splines 
+\[
+\Big\{ f_1 \otimes \cdots \otimes f_d : \text{each $f_\ell$ is a $k\th$ degree
+  spline with knots in $t_1,\dots,t_r$, for $\ell=1,\dots,d$} \Big\}.  
+\]
+Figure \ref{fig:tensor} displays a few tensor products of bivariate B-splines.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=0.925\textwidth]{tensor.png}
+\caption{\it Bivariate tensor products of cubic B-splines. Credit: Chapter 5.7
+  of \citet{hastie2009elements}.}    
+\label{fig:tensor}
+\end{figure}
+
+To fit a tensor product spline from data, the simplest thing to do would be the 
+\emph{tensor product regression spline}, whose coefficients are given by solving  
+\[
+\minimize_\beta \; \sum_{i=1}^n \bigg(y_i -  \sum_{j \in [N]^d} \beta_j \,
+g_{j_1}(x_{i1}) \otimes \cdots \otimes g_{j_d}(x_{id}) \bigg)^2. 
+\]
+Denoting by $A \otimes B$ the Kronecker product of matrices $A,B$, and denoting
+by $G_\ell \in \R^{N \times N}$ the basis matrix for dimension $\ell$, with
+entries $[G_\ell]_{pq} = g_q(x_{p\ell})$, we can express the above in more
+compact form as  
+\[
+\minimize_\beta \; \big\| Y - (G_1 \otimes \cdots G_d) \beta \big\|_2^2. 
+\]
+As usual, given the solution \smash{$\hbeta$},  we make predictions according to
+\smash{$\hf(x) = \sum_{j \in [N]^d} \hbeta_j \, g_{j_1}(x_1) \otimes \cdots
+  \otimes g_{j_d}(x_d)$}, and since \smash{$\hbeta$} is linear in $Y$, the
+tensor product spline \smash{$\hf$} is a linear smoother.
+
+Few notes: there is no reason that the knots have to be the same along each 
+dimension, that is only done here for simplicity. We could have also used
+regularization, though for ``variationally-motivated'' regularization we'd turn 
+to thin plate splines (covered next).
+
+\subsubsection{What are these functions?} 
+
+We should be clear that tensor product construction \emph{does not ``really'' 
+  give us a multivariate spline}, if we maintain that a spline is a $k\th$
+piecewise polynomial that is also $C^{k-1}$. Why? Note that a tensor product of
+univariate $k\th$ degree splines produces a function that is indeed $C^{k-1}$,
+and indeed a piecewise polynomial: it is a polynomial on each hypercube of the
+form        
+\[
+[t_{j_1}, t_{j_1+1}] \times \cdots \times [t_{j_d}, t_{j_d+1}]. 
+\]
+But it is \emph{not} necessarily a $k\th$ degree polynomial on each
+hypercube; it is a tensor product of univariate $k\th$ degree
+polynomials. Technically, out of this we can get a polynomial of degree up to 
+$k^d$, and at the same time, we can't actually generate any polynomial of degree 
+$k^d$. We are restricted to functions of the form   
+\[
+f(x) = \sum_{\alpha_1,\dots,\alpha_d \leq k} \beta_\alpha \, x_1^{\alpha_1}
+x_2^{\alpha_2} \dots x_d^{\alpha_d}.
+\]
+There is important difference here, compared to \eqref{eq:polynomial}. As a
+concrete example, take $k=1$ and $d=2$: then the tensor product of univariate
+linear functions give us (what are called bilinear) functions of the form
+\[
+1 + a x_1 + b x_2 + c x_1 x_2,
+\]
+which is \emph{not} linear, because of the cross term $x_1 x_2$. At the same
+time, we can't get any quadratic out of this, because we're missing the terms
+$x_1^2$ and $x_2^2$. 
+
+This seems to bothers some people (researchers, practitioners), but doesn't
+bother others---it really must depend on the problem setting or application one
+has in mind. Sometimes the highly anisotropic (coordinate-aligned) nature of a
+tensor product spline may be desirable, and other times it may not.    
+
+\subsection{Thin plate splines}
+
+An alternative route is to try to extend the variational problem \eqref{eq:ss}
+that defined the univariate smoothing spline. At the outset, let's aim for the
+most general extension, which is to define an estimator by solving
+\begin{equation}
+\label{eq:ss_multivariate}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_U \sum_{|\alpha| =
+  m} [D^\alpha f(x)]^2 \, dx,   
+\end{equation}
+for an integer order $m \geq 1$. Here $U$ is a subset of $\R^d$ that contains
+the input points $x_i$, $i=1,\dots,n$, and the minimization is over all
+functions $f$ for the which the criterion is well-defined and finite. For
+example, we can consider the minimization to be over the Sobolev space
+$W^{m,2}(U)$, which recall contains $m$ times weakly differentiable functions
+with $\alpha\th$ derivative in $L^2(U)$, for $|\alpha| \leq m$. (There is a
+subtlety here about what we actually mean here for unbounded domain like $U =
+\R^d$. The problem is that the Sobolev space  $W^{m,2}(\R^d)$ doesn't admit
+polynomials of degree $m-1$, whereas we'd like all of these to be allowed in the
+minimization. See the course website for a supplementary note that explains
+these details.) 
+
+Is this a good idea? It depends. When $2m > d$, problem
+\eqref{eq:ss_multivariate} is well-defined in the sense that it admits a
+solution. This solution is what we'll eventually call the thin plate spline
+estimator (in a particular case). But when $2m \leq d$, there is a fundamental
+issue with this approach: problem \eqref{eq:ss_multivariate} is
+\emph{ill-defined in the sense that it has no solution}. This is a manifestation
+of the Sobolev embedding theorem.
+
+\subsubsection{Return of the Sobolev embedding theorem}
+
+Let's recall what we learned from the Sobolev embedding theorem earlier (if you
+skipped it, since we did say it it was optional, then also that's fine---the
+following explanation should still be pretty self-contained). When $2m > d$,
+which we called the supercritical regime, the Sobolev space $W^{m,2}(U)$ embeds
+continuously into a H{\"o}lder space $C^{r+\gamma}(U)$, so in particular it
+embeds continuously into $C^0(U)$: this is simply the space of continuous
+functions on $U$ equipped with the $L^\infty$ norm. %\footnote{On $C^0(U)$, 
+  % as with all H{\"o}lder spaces, we take $L^\infty$ to be the sup norm, and
+  % \emph{not} the essential sup norm.}     
+Why is this important? Well, given a sequence such that $f_k \to f$ as $k \to
+\infty$ in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the continuous embedding
+property implies $f_k \to f$ as $k \to \infty$ in $L^\infty$ norm, which implies
+$f_k(x) \to f(x)$ for all $x$. Thus we have shown a critical fact:
+\begin{quote}
+\centering\it
+For $2m > d$, the point evaluation operator is continuous on $W^{m,2}(U)$.   
+\end{quote}
+This means we can do things like solve the variational problem
+\eqref{eq:ss_multivariate}. 
+
+But when $2m \leq d$, we do not get an embedding into $C^0(U)$, and it turns out
+that:   
+\begin{quote}
+\centering\it
+For $2m \leq d$, the point evaluation operator is not continuous on
+$W^{m,2}(U)$.  
+\end{quote}
+This means that there can be a sequence such that $f_k \to f$ as $k \to \infty$
+in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm but $f_k(x) \not\to f(x)$ for some
+$x$. In fact, it's not hard to see this from first principles when $2m < d$.
+Let $f$ to be an infinitely differentiable ``bump'' function that is symmetric
+about the origin, with $f(0) = 1$, and zero outside of the unit $\ell_2$ ball
+$\{x : \|x\|_2 \leq 1\} \subseteq U$. Now define $f_k(x) = f(k x)$, for
+$k=1,2,3,\dots$, so that $f_k$ collapses smoothly to a spike at the origin as $k 
+\to \infty$. Then
+\[
+\int \sum_{|\alpha| = m} [D^\alpha f_k(x)]^2 \, dx = 
+k^{d-2m} \int \sum_{|\alpha| = m} [D^\alpha f(u)]^2 \, du, 
+\]
+simply by a change of variables $u = k x$. If $d > 2m$, then as $k \to \infty$,
+we get that $f_k \to 0$ (the zero function) in \smash{$\|\cdot\|_{W^{m,2}(U)}$}
+norm. However, recall $f_k(0) = 1$ for all $k$, so clearly we do not get
+pointwise convergence at the origin. Altogether, this means we \emph{cannot} do
+things like solve the variational problem \eqref{eq:ss_multivariate}.  
+
+\subsubsection{Restrictions to the rescue}
+
+To circumvent the above issue, we can just restrict $2m > d$. Note that this
+forces us to take more derivatives as $d$ grows, which is not really desirable
+(more on this later). In any case, when $d=2$, it is valid to take $m=2$, which
+yields the \emph{thin plate spline} estimator, defined by solving   
+\begin{equation}
+\label{eq:thin_plate1}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_U \|\nabla^2 
+f(x)\|_F^2 \, dx, 
+\end{equation}
+where $\nabla^2 f$ denotes the weak Hessian (matrix of weak second derivatives)
+of $f$, and $\|\cdot\|_F$ is the Frobenius norm. This can be equivalently
+written as  
+\begin{equation}
+\label{eq:thin_plate2}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_U \bigg[ \bigg( 
+\frac{\partial^2 f(x)}{\partial x_1^2}\bigg)^2 +  2\bigg( \frac{\partial^2
+  f(x)}{\partial x_1 \partial x_2} \bigg)^2 +  \bigg( \frac{\partial^2
+  f(x)}{\partial x_2^2} \bigg)^2 \bigg] \, dx. 
+\end{equation}
+Like the cubic smoothing spline problem \eqref{eq:ss_cubic}, the thin plate
+spline problem \eqref{eq:thin_plate2} (or equivalently, \eqref{eq:thin_plate1}) 
+has a representer theorem for its solution. Unlike the smoothing spline, the
+solution actually depends on the choice of the domain $U$. For $U = \R^d$,  
+% RJT note: again I don't love this because when U = \R^d, we're not really
+% doing minimization over the Sobolev space below. So this is kind of murky
+% territory. 
+one can show that it suffices to consider functions of the form   
+\begin{equation} 
+\label{eq:polyharmonic}
+f(x) = a + b^\T x + \sum_{j=1}^n \beta_j \eta(\|x - x_j\|_2), 
+\end{equation}
+where $\eta$ is the so-called \emph{radial basis function}
+\[
+\eta(r) = \frac{1}{16 \pi} r^2 \log r^2,
+\]
+(As $\log 0$ is undefined, we adopt a continuous extention at zero, and set
+$\eta(0) = 0$.) In order for the penalty in the problem \eqref{eq:thin_plate2}
+to be finite, a necessary and sufficient condition on the coefficients is that 
+\[
+0 = \sum_{i=1}^n \beta_j = \sum_{j=1}^n \beta_j x_j.
+\]
+Note that there are 3 linear constraints here (since each $x_i$ is in $\R^2$), 
+and there are $n+3$ parameters in \eqref{eq:polyharmonic}, which means that in
+total, subject the constraints, we have $n$ free parameters.  
+
+Using this constrained parametrization, we can translate \eqref{eq:thin_plate2}
+into a finite-dimensional problem. One can show that it is a constrained
+generalized ridge regression, thus its solution, the fitted coefficients
+\smash{$\hat{a}, \hat{b}, \hbeta$}, are linear in $Y$. As we make predictions
+according to \smash{$\hf(x) = \hat{a} + \hat{b}^\T x + \sum_{j=1}^n \hbeta_j
+  \eta(\|x - x_i\|_2)$}, we see that the thin plate spline is a linear smoother.
+The story for what happens on a bounded domain $U$ is similar, but a bit more
+complex. See Chapters 7.4--7.7 of \citet{green1993nonparametric} for precise
+details.      
+
+The function $f$ in \eqref{eq:polyharmonic} often called a \emph{polyharmonic
+  spline}. Again, it is \emph{not ``really'' a multivariate spline}, because it
+is not a piecewise polynomial. But let's emphasize an important property: $\eta$
+is symmetric around the origin. In fact, if we just look back at the criterion
+\eqref{eq:thin_plate1}, we see that if we rotated the coordinate system by an
+orthogonal transform $V \in \R^{2 \times 2}$, and take our new coordinates to be
+$z=Vx$, then we get  
+\[
+\minimize_f \; \sum_{i=1}^n (y_i - f(z_i))^2 + \lambda \int \underbrace{\| V
+  \nabla^2 f(z) V^\T\|_F^2}_{= \|\nabla^2 f(z)\|_F^2} \, dz,   
+\]
+where we used the fact that $\|V A V^\T\|_F = \|A\|_F$ for any matrix $A$ due to
+orthogonality of $V$. This means that the thin plate spline estimator is
+\emph{rotationally invariant}: if we rotated the coordinate system of the input
+points, then the new solution would just be a rotation of the old solution. This
+is \emph{not} true of tensor product splines. 
+
+What about more than 2 dimensions? When $d=3$, the choice $m=2$ is still
+valid, and the corresponding estimator is often still called the thin plate
+spline. The details are similar to the above. In fact, whenever $2m > d$, the 
+variational problem \eqref{eq:ss_multivariate} has a representer theorem and
+admits a finite-dimensional solution which is a polyharmonic spline, and the
+problem reduces to a generalized ridge regression. See Chapter 7.9 of
+\citet{green1993nonparametric}. Instead of pursuing these details, we'll simply
+move on to RKHS theory, as this will provide us a more general perspective. 
+
+\subsubsection{Can we do anything else?}
+
+Before moving on to RKHS theory, it's worth emphasizing restrictive the
+condition $2m > d$ is. Though it's a very simple calculation, Table
+\ref{tab:supercritical} lists the requirement on $m$ for $d=1$ through 5.  
+
+\begin{table}[htb]
+\centering
+\begin{tabular}{c|c}
+Dimension & Restriction \\
+\hline
+$d=1$ & $m \geq 1$ \\
+$d=2$ & $m \geq 2$ \\
+$d=3$ & $m \geq 2$ \\
+$d=4$ & $m \geq 3$ \\
+$d=5$ & $m \geq 3$ 
+\end{tabular}
+\caption{\it Translating the supercritical condition $2m > d$, for each $d 
+  \leq 5$.} 
+\label{tab:supercritical} 
+\end{table}
+
+This is obviously not desirable: the choice of smoothness order $m$ (which then
+dictates the degree of the polyharmonic spline) should be up to the modeler, and
+not dictated by the ambient dimension.
+
+There is another way. We can ``discretize'' the variational problem
+\eqref{eq:ss_multivariate}, specifically, we can substitute the penalty with a
+discrete approximation based on a graph Laplacian, where the graph is built 
+using the input points $x_1,\dots,x_n$. This has the advantage of being (i)
+always well-defined, and (ii) more computationally efficient than solving
+\eqref{eq:ss_multivariate} even when the latter is well-posed. In fact, beyond
+just being well-defined, the graph-based approach can even be minimax rate
+optimal (over norm balls in Sobolev spaces) in regimes where the variational
+problem \eqref{eq:ss_multivariate} is ill-posed. Of course, we're skirting a lot
+of details, but the takeaway you should know is this:  
+\begin{quote}
+\centering\it
+Consistent estimation over $W^{m,2}([0,1]^d)$---even minimax rate optimal
+estimation---is still possible when $2m \leq d$. We can't use variational
+methods like \eqref{eq:ss_multivariate}, but we can do other things.
+\end{quote}
+However, to qualify the above statement, we \emph{must} be in the Random-X
+setting, where $x_i$, $i=1,\dots,n$ are random. If the input points were fixed,
+then when $2m \leq d$, a construction using ``bump'' functions (just like the
+one we gave above to show that the point evaluation operator is not continuous)
+will show that consistent estimation is impossible. To learn more, see 
+\citet{green2021minimax1}. See also \citet{green2021minimax2} for a related
+approach that forms a nonparametric estimator by projecting onto eigenvectors of 
+the graph Laplacian (rather than penalizing according to the graph Laplacian)
+and has even stronger theory.  
+
+\section{RKHS methods}
+
+Lastly, we turn to RKHS methods. This will require covering some theory first in
+order to properly understand what's going on, but RKHS theory is arguably easier
+than Sobolev theory. Two great references on the former are
+\citet{scholkopf2002learning, christmann2008support}.  
+
+A \textbf{warning} before we begin: don't confuse any of what follows with
+kernel smoothing (as covered in the last lecture) or the kernel functions used
+therein! This is a completely separate concept. 
+
+\subsection{Kernels, Hilbert spaces, RKHS}
+
+We start off by defining the ingredients needed for an RKHS. 
+
+\paragraph{Inner products.}
+
+Let $\cH$ be a vector space over $\R$ (for our purposes: think of this as a
+space of real-valued functions). An \emph{inner product} on $\cH$ is a function
+$\langle \,\cdot\,, \,\cdot\, \rangle_\cH : \cH \times \cH \to \R$ satisfying
+three properties, which must hold for all $f,g,h \in \cH$ and all $a,b \in \R$: 
+\begin{enumerate}
+\item $\langle af + bg, h \rangle_\cH = a \langle f,h \rangle_\cH + b \langle
+  g,h \rangle_\cH$;
+\item $\langle f,g \rangle_\cH = \langle g,f \rangle_\cH$;
+\item $\langle f,f \rangle_\cH \geq 0$ with equality iff $f=0$. 
+\end{enumerate}
+We can always define a norm based on this inner product, denoted
+$\|\cdot\|_\cH$, by 
+\[
+\|f\|_\cH^2 = \langle f, f \rangle_\cH.
+\]
+Equipped with its inner product $\langle \,\cdot\,, \,\cdot\, \rangle_\cH$, we
+call $\cH$ an \emph{inner product space}. 
+
+\paragraph{Hilbert spaces.} 
+
+An inner product space $\cH$ is called a \emph{Hilbert space} if it is
+complete. Recall that completeness means that Cauchy sequences converge to   
+limits in the space. (Concretely, given any sequence $f_n$, $n=1,2,3,\dots$ in
+$\cH$ such that for any $\epsilon>0$, we have $\|f_n - f_m\|_\cH < \epsilon$ for
+large enough $n,m$, it must hold that $\|f_n - f\|_\cH \to 0$ as $n \to \infty$
+for some $f \in \cH$.)
+
+\paragraph{Kernels.}
+
+There are different ways to define kernels, and in fact different ways to arrive 
+at an RKHS. One way is this. A \emph{kernel} is function $k : \cX \times \cX \to 
+\R$ for which there exists a map $\phi : \cX \to \cH$ (for our purposes: think
+of this as a feature map) such that for any $x,y \in \cX$,  
+\[
+k(x,y) = \langle \phi(x), \phi(y) \rangle_\cH.
+\]
+Note that $k$ is always symmetric and nonnegative, because $\langle \,\cdot\,, 
+\,\cdot\, \rangle_\cH$ is an inner product. Furthermore, it is easy to check
+from first principles that $k$ satisfies the following property: for any $n \geq
+1$ and $x_1,\dots,x_n \in \cX$, if we define a matrix $K \in \R^{n \times n}$ to 
+have entries $K_{ij} = k(x_i, x_j)$, then  
+\[
+a^\T K a \geq 0, \quad \text{for all $a \in \R^n$}.
+\]
+A function $k$ that is symmetric and satisfies the above property is called 
+\emph{positive semidefinite}. 
+
+Thus, from what we have just argued, a kernel function is always positive
+semidefinite. Remarkably, the converse is also true: any positive semidefinite
+function $k : \cX \times \cX \to \R$ is a kernel. This means that \emph{in order
+  to define a kernel $k$, we don't have to explicitly specify the feature map 
+  $\phi$; we just need to satisfy positive semidefiniteness}.  
+
+Examples of kernels on $\cX = \R^d$ include:
+\begin{alignat*}{3}
+&\text{polynomial kernel}: \quad && k(x,y) = (1 + x^\T y)^m, \\
+&\text{exponential kernel}: \quad && k(x,y) = \exp(x^\T y), \\
+&\text{Gaussian kernel}: \quad && k(x,y) = \exp(-\|x-y\|_2^2 / \sigma^2). 
+\end{alignat*}
+Importantly, kernels need not be restricted to $\cX \subseteq \R^d$; they can be
+defined over much more exotic spaces $\cX$, like spaces of images or text
+strings, we just need a suitable (positive semidefinite) notion of similarity
+between objects.   
+
+\paragraph{Reproducing kernel Hilbert spaces.} 
+
+A Hilbert space $\cH$ of functions is called a \emph{reproducing kernel Hilbert
+  space} (RKHS), with kernel $k : \cX \times \cX \to \R$, provided the following
+two conditions are satisfied:  
+\begin{enumerate}
+\item for any $x \in \cX$, the function $k(\cdot, x)$ is an element of $\cH$;   
+\item for any function $f \in \cH$ and $x \in \cX$, it holds that $\langle f,
+  k(\cdot, x) \rangle_\cH = f(x)$. 
+\end{enumerate}
+The functions $k(\cdot, x)$ in the first property are often called the
+``reproducers of evaluation''. Accordingly, the second property is often called
+the ``reproducing property''. In particular, note that the reproducing property
+implies 
+\[
+k(x,y) = \langle k(\cdot, x), k(\cdot, y) \rangle_\cH,
+\]
+for any $x,y$. This means that the map $\phi(x) = k(\cdot, x)$ is a valid
+feature map for $k$.  
+
+\paragraph{Equivalent formulation of an RKHS.}
+
+Here is an equivalent formulation of an RKHS that reveals a nice connection to
+Sobolev spaces. For $x \in \cX$, denote by $\delta_x$ the corresponding
+evaluation operator on $\cH$, which acts according to $\delta_x(f) = f(x)$. Then
+a Hilbert space of functions $\cH$ is an RKHS if and only if all of the
+evaluation operators are continuous.  
+
+Recall that the Sobolev space $W^{m,2}(U)$, where $U \subseteq \R^d$, is a
+Hilbert space, for any $m \geq 0$. Recall also that point evaluation in a
+Sobolev space is continuous if and only if $2m > d$. Therefore, we learn the
+following:       
+\begin{quote}
+\centering\it
+A Sobolev space $W^{m,2}(U)$ is an RKHS if and only if $2m > d$.
+\end{quote}
+This is an amazing fact. A natural follow-up question: what is the kernel $k$
+corresponding to the Sobolev space, for $2m > d$? Well, it's a bit
+complicated. Are you ready for it? For $U = \R^d$, it's\footnote{The integral 
+  here---hence the kernel---only takes real values, because $\exp(2\pi i
+  (x-y)^\T u) = \cos(2\pi(x-y)^\T u) + i (2\pi i (x-y)^\T u)$ and the integral
+  of the imaginary part is zero since the corresponding integrand is odd.}  
+\[
+k(x,y) = \int \frac{\exp(2\pi i (x-y)^\T u)}{1 + \sum_{0 < |\alpha| \leq m}
+  \prod_{j=1}^d (2\pi u_j)^{2\alpha_j}} \, du.
+\]
+While this certainly looks complicated, it simplifies in a few important cases.  
+% For $d=1$ and $m=1$, we get:
+% \[
+% k(x,y) = \frac{1}{2} \exp(-|x-y|).
+% \]
+For $d=1$ and $m=2$, we get the ``smoothing spline kernel'': 
+\begin{equation}
+\label{eq:ss_rkhs}
+k(x,y) = \frac{\sqrt{3}}{3} \exp\bigg( -\frac{\sqrt{3}|x-y|}{2} \bigg) 
+\sin\bigg( \frac{|x-y|}{2} + \frac{\pi}{6} \bigg).
+\end{equation}
+Meanwhile, for $d=2$ and $m=2$, we get the ``thin plate spline kernel'': 
+\begin{equation}
+\label{eq:tp_rkhs}
+k(x,y) = \frac{1}{16 \pi} \|x-y\|_2^2 \, \log \|x-y\|_2^2.
+\end{equation}
+
+\subsection{RKHS regression}
+
+After all that build up, this next part is going to be (surprisingly?)
+simple. Let $\cH$ be an RKHS, and let $k : \cX \times \cX \to \R$ be its
+kernel. We can now define an \emph{RKHS regression estimator} by solving 
+\begin{equation}
+\label{eq:rkhs}
+\minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \|f\|_\cH^2,
+\end{equation}
+where $\|\cdot\|_\cH$ is the norm associated with $\cH$. Note: here the input
+points satisfy $x_i \in \cX$, and $\cX$ can be completely arbitrary (it doesn't
+need to be a subset of $\R^d$). 
+
+Popular choices of $k$, as we already mentioned, include the polynomial kernel,
+Gaussian kernel, and exponential kernel, which gives novel nonparametric
+regression estimators---novel in the sense that you haven't seem them thus far
+in these lectures on nonparametric regresion. We can also choose particular
+kernels, as given in \eqref{eq:ss_rkhs} and \eqref{eq:tp_rkhs}, to ``reproduce''
+(no pun in intended) smoothing splines and thin plate splines. 
+
+% RJT note: this is kind of cheating, but by putting it in quotes, I feel as if
+% I'm being sufficiently vague about what the actual equivalence is. 
+
+\subsection{Representer theorem}
+
+One of the main points of appeal of RKHS regression is the fact that we have a
+\emph{representer theorem} for the infinite-dimensional problem \eqref{eq:rkhs}.
+This effectively generalizes the results stated thus far on splines. The
+solution in \eqref{eq:rkhs} is unique and achieved at a function of the form   
+\[
+f(x) = \sum_{i=1}^n \beta_i k(x, x_i).
+\]
+Note that this is a linear combination of the representers of evaluation. The
+proof of this result is actually not very hard. We'll walk through it on the
+homework.  
+
+\subsection{Finite-dimensional form}
+
+From the representer result, we can rewrite \eqref{eq:rkhs} as
+\begin{equation}
+\label{eq:rkhs_finite_dim1}
+\minimize_\beta \; \sum_{i=1}^n \bigg( y_i - \sum_{j=1}^n \beta_j k(x_i, x_j) 
+\bigg)^2 + \lambda \sum_{i,j=1}^n \beta_i \beta_j \langle k(\cdot, x_i) ,
+k(\cdot, x_j) \rangle_\cH.
+\end{equation}
+Using the reproducing property $\langle k(\cdot, x_i), k(\cdot, x_j) \rangle_\cH
+= k(x_i, x_j)$, and denoting by $K \in \R^{n \times n}$ the kernel matrix with
+entries $K_{ij} = k(x_i, x_j)$, problem \eqref{eq:rkhs_finite_dim1} simplifies
+even further to
+\begin{equation}
+\label{eq:rkhs_finite_dim2}
+\minimize_\beta \; \|Y - K\beta\|_2^2 + \lambda \beta^\T K \beta.
+\end{equation}
+This is (once again) a generalized ridge regression. The solution in
+\eqref{eq:rkhs_finite_dim2} is 
+\[
+\hbeta = (K^\T K + \lambda K)^{-1} K^\T Y = (K + \lambda I)^{-1} Y,
+\]
+where we have used the fact that $K$ is symmetric and invertible. The RKHS
+estimator makes predictions according to \smash{$\hf(x) = \sum_{j=1}^d \hbeta_j
+  k(x, x_j)$}, and since \smash{$\hbeta$} is linear in $Y$, it is (once again) a
+linear smoother. 
+
+\bibliographystyle{plainnat}
+\bibliography{../../common/ryantibs.bib}
+
+\end{document}
