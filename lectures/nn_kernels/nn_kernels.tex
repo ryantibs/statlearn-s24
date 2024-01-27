@@ -110,7 +110,7 @@ Importantly, in nonparametric regression we don't assume a particular parametric
 model for $f_0$. Still, in many approaches, we estimate $f_0$ using a linear
 combination of nonlinear basis functions, written as   
 \[
-\hf(x) = \sum_{j=1}^m \hbeta_j g_j(x). 
+\hf(x) = \sum_{j=1}^N \hbeta_j g_j(x). 
 \]
 A common question that comes to mind when learning this material: aren't the
 coefficients on the basis functions parameters? And so ... how is this
@@ -118,8 +118,8 @@ nonparametric?
 
 To be clear, the point is that \emph{we don't assume a parametric form for
   $f_0$}, i.e., we don't assume $f_0$ is itself a linear combination of
-$g_1,\dots,g_m$. In this sense, the estimated coefficients
-\smash{$\hbeta_1,\dots,\hbeta_m$} are not really viewed as parameter estimates; 
+$g_1,\dots,g_N$. In this sense, the estimated coefficients
+\smash{$\hbeta_1,\dots,\hbeta_N$} are not really viewed as parameter estimates; 
 and we are not concerned with how close they are to some ``true'' parameters. We 
 only care about how close \smash{$\hf$} is to $f_0$.
 
