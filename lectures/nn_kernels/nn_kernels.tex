@@ -341,7 +341,7 @@ Note carefully that---for now---we are assuming the kernel can only take
 nonnegative values, $K \geq 0$. Three common examples are the spherical (also
 called rectangular or boxcar) kernel: 
 \[
-K(t) = 1\{|t| \leq 1\},
+K(t) = \frac{1}{2} 1\{|t| \leq 1\},
 \]
 the Gaussian kernel:
 \[
@@ -349,7 +349,7 @@ K(t) = \frac{1}{\sqrt{2\pi}} \exp(-t^2/2),
 \]
 and the Epanechnikov kernel:
 \[
-K(t) = 3/4 (1-t^2) 1\{|x| \leq 1\}.
+K(t) = \frac{3}{4} (1-t^2) 1\{|t| \leq 1\}.
 \]
 
 Given a choice of kernel $K$, and a choice of bandwidth $h>0$, the
