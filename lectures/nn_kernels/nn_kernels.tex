@@ -83,26 +83,27 @@ Again, you'll often see this written as \smash{$\|\cdot\|_{L^2(P)}$}, but in
 we'll abbreviate this by $\|\cdot\|_2$, and we'll call this the \emph{population
   $L^2$ norm} (often drop ``$L^2$'' when it is clear from the context).  
 
-Key quantities of interests will be the in-sample and out-of-sample error
-incurred by an estimator \smash{$\hf$} of $f_0$, which are, respectively, 
-\[
-\|\hf - f_0\|_n^2 \quad \text{and} \quad \|\hf - f_0\|_2^2.
-\]
-In either case, this is a random quantity (since \smash{$\hf$} is itself
-random). In general, in nonparametric regression, we study error\footnote{In the
-  review lecture, we were more precise about using ``error'' and ``risk'' to
-  mean separate things; and defined the risk via the expectations
-  \smash{$\E\|\hf - f_0\|_n^2$} and \smash{$\E\|\hf - f_0\|_2^2$}, with respect
-  to appropriate randomness in the training set that is used to define
-  \smash{$\hf$}. In this and future lectures, we'll often take the liberty of
-  being more flexible with our nomenclature.}    
-bounds in probability or in expectation, depending on what is more convenient in
-the given analysis. Upper bounds on the risk (as we will see in this lecture and
-the next) are usually easier to derive in probability, and lower bounds (as we
-will see in the minimax theory lecture) are typically easier to derive in
-expectation. We tend not to fuss about this discrepancy, particularly because
-upper bounds in probability can be translated into upper bounds in expectation
-whenever the probability control is sharp enough (as you saw on the homework).  
+% Key quantities of interests will be the in-sample and out-of-sample error
+% incurred by an estimator \smash{$\hf$} of $f_0$, which are, respectively, 
+% \[
+% \|\hf - f_0\|_n^2 \quad \text{and} \quad \|\hf - f_0\|_2^2.
+% \]
+% In either case, this is a random quantity (since \smash{$\hf$} is itself
+% random). In general, in nonparametric regression, we study error\footnote{In
+% the review lecture, we were more precise about using ``error'' and ``risk'' to 
+%   mean separate things; and defined the risk via the expectations
+%   \smash{$\E\|\hf - f_0\|_n^2$} and \smash{$\E\|\hf - f_0\|_2^2$}, with
+%   respect to appropriate randomness in the training set that is used to define 
+%   \smash{$\hf$}. In this and future lectures, we'll often take the liberty of
+%   being more flexible with our nomenclature.}    
+% bounds in probability or in expectation, depending on what is more convenient
+% in the given analysis. Upper bounds on the risk (as we will see in this
+% lecture and the next) are usually easier to derive in probability, and lower
+% bounds (as we will see in the minimax theory lecture) are typically easier to
+% derive in expectation. We tend not to fuss about this discrepancy,
+% particularly because upper bounds in probability can be translated into upper
+% bounds in expectation whenever the probability control is sharp enough (as you
+% saw on the homework).   
 
 \subsection{What does ``nonparametric'' mean?}
 
@@ -123,28 +124,29 @@ $g_1,\dots,g_N$. In this sense, the estimated coefficients
 and we are not concerned with how close they are to some ``true'' parameters. We 
 only care about how close \smash{$\hf$} is to $f_0$.
 
-Of course, in order for this to ``work'', we need our representation to be
-sufficiently flexible---otherwise we can't guarantee \smash{$\hf$} will be close 
-$f_0$. The gap between our representation and $f_0$ is known as the
-\emph{approximation error}. For traditional nonparametric theory (e.g., theory
-for $k$-nearest neighbors and kernel regression), this won't be an explicit part
-of the analysis; but for some advanced results, it will (we'll touch on this in
-a later lecture). Here is a concrete example of an approximation guarantee: for 
-any $f_0 : [0,1] \to \R$ whose second derivative is integrable, and
-evenly-spaced points $t_1,\dots,t_N \in [0,1]$, there is a cubic spline
-\smash{$\bar{f}$} with knots at $t_1,\dots,t_N$ (to be defined precisely in the 
-splines lecture) such that    
-\[
-\|\bar{f} - f_0\|_\infty \leq \frac{c}{N} \bigg[ \int_0^1 [f_0''(x)]^2 \, dx
-\bigg]^{1/2},  
-\]
-where $c>0$ is a constant and $\|f\|_\infty = \sup_{x \in [0,1]} \, |f(x)|$ is
-the $L^\infty$ norm on $[0,1]$. Note that \smash{$\int_0^1 [f_0''(x)]^2 \, dx$}
-is a measure of the smoothness of $f_0$. If this remains constant, and we choose 
-\smash{$N=\sqrt{n}$}, then the squared $L^2$ approximation error---either in 
-empirical or population norm (\smash{$\|\bar{f} - f_0\|_n^2$} or
-\smash{$\|\bar{f} - f_0\|_2^2$})---will be on the order of $1/n$, which will be  
-negligible relative to the overall estimation error that we will encounter.
+% Of course, in order for this to ``work'', we need our representation to be
+% sufficiently flexible---otherwise we can't guarantee \smash{$\hf$} will be
+% close $f_0$. The gap between our representation and $f_0$ is known as the 
+% \emph{approximation error}. For traditional nonparametric theory (e.g., theory 
+% for $k$-nearest neighbors and kernel regression), this won't be an explicit
+% part of the analysis; but for some advanced results, it will (we'll touch on
+% this in a later lecture). Here is a concrete example of an approximation
+% guarantee: for any $f_0 : [0,1] \to \R$ whose second derivative is integrable,
+% and evenly-spaced points $t_1,\dots,t_N \in [0,1]$, there is a cubic spline 
+% \smash{$\bar{f}$} with knots at $t_1,\dots,t_N$ (to be defined precisely in
+% the splines lecture) such that     
+% \[
+% \|\bar{f} - f_0\|_\infty \leq \frac{c}{N} \bigg[ \int_0^1 [f_0''(x)]^2 \, dx
+% \bigg]^{1/2},  
+% \]
+% where $c>0$ is a constant and $\|f\|_\infty = \sup_{x \in [0,1]} \, |f(x)|$ is 
+% the $L^\infty$ norm on $[0,1]$. Note that \smash{$\int_0^1 [f_0''(x)]^2 \, dx$}
+% is a measure of the smoothness of $f_0$. If this remains constant, and we
+% choose \smash{$N=\sqrt{n}$}, then the squared $L^2$ approximation
+% error---either in empirical or population norm (\smash{$\|\bar{f} -
+% f_0\|_n^2$} or \smash{$\|\bar{f} - f_0\|_2^2$})---will be on the order of
+% $1/n$, which will be negligible relative to the overall estimation error that
+% we will encounter. 
 
 \subsection{What we cover here}
 
@@ -698,7 +700,7 @@ splines, which we'll learn a bit later on.)
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.6\textwidth]{order4.pdf}
+\includegraphics[width=0.5\textwidth]{order4.pdf}
 \caption{\it A higher-order kernel function---specifically, a kernel of order
   4.}    
 \label{fig:order4}
