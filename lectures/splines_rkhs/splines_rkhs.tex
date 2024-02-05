@@ -16,7 +16,13 @@ Ryan Tibshirani}
 \vspace{-50pt}
 
 Note: we're following the context, problem setup, notation, etc. from the last
-lecture on nonparametric regression.
+lecture on nonparametric regression. In particular, we reiterate that we
+abbreviate the population and empirical $L^2$ norms based on a test sample $x_0
+\sim P$ and training samples $x_1\dots,x_n \sim P_n$, respectively, by 
+\[
+\|f\|_2^2 =  \E[f^2(x_0)] = \int f^2(x) \, dP(x), \quad \text{and} \quad
+\|f\|_n^2 = \frac{1}{n} \sum_{i=1}^n f^2(x_i). 
+\]
 
 \section{Regression splines}
 
