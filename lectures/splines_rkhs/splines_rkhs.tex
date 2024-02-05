@@ -1242,9 +1242,8 @@ Thus, from what we have just argued, a kernel function is always positive
 semidefinite. Remarkably, the converse is also true: any positive semidefinite
 function $k : \cX \times \cX \to \R$ is a kernel. This means that \emph{in order
   to define a kernel $k$, we don't have to explicitly specify the feature map 
-  $\phi$; we just need to satisfy positive semidefiniteness}.  
-
-Examples of kernels on $\cX = \R^d$ include:
+  $\phi$; we just need to satisfy positive semidefiniteness}. Examples of
+kernels on $\cX = \R^d$ include: 
 \begin{alignat*}{3}
 &\text{polynomial kernel}: \quad && k(x,y) = (1 + x^\T y)^m, \\
 &\text{exponential kernel}: \quad && k(x,y) = \exp(x^\T y), \\
@@ -1267,8 +1266,7 @@ two conditions are satisfied:
 \end{enumerate}
 The functions $k(\cdot, x)$ in the first property are often called the
 ``reproducers of evaluation''. Accordingly, the second property is often called
-the ``reproducing property''. In particular, note that the reproducing property
-implies 
+the ``reproducing property''. In particular, note that it implies
 \[
 k(x,y) = \langle k(\cdot, x), k(\cdot, y) \rangle_\cH,
 \]
