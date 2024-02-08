@@ -212,14 +212,14 @@ given odd integer order $k \geq 1$, is defined to solve
 \begin{equation}
 \label{eq:ss}
 \minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \int_a^b [D^m f(x)]^2 \,
-dx, \quad \text{where $m=(k+1)/2$}.
+dx, 
 \end{equation}
-This is an infinite-dimensional optimization problem over all functions $f$ for
-the which the criterion is well-defined and finite. The criterion in
-\eqref{eq:ss} trades off the squared error of $f$ over $(x_i,y_i)$,
-$i=1,\dots,n$, with a penalty term that is large when the $(m-1)^{\text{st}}$
+for $m = (k+1)/2$. This is an infinite-dimensional optimization problem over all
+functions $f$ for the which the criterion is well-defined and finite. The
+criterion in \eqref{eq:ss} trades off the squared error of $f$ over $(x_i,y_i)$,
+$i=1,\dots,n$, with a penalty term that is large when the order $(m-1)$
 derivative of $f$ is wiggly. The tuning parameter $\lambda \geq 0$ governs the
-tradeoff between these two terms.  
+tradeoff between these two terms.
 
 By far the most commonly considered case is $k=3$, the cubic smoothing spline,
 defined via 
@@ -1003,14 +1003,13 @@ skipped it, since we did say it it was optional, then also that's fine---the
 following explanation should still be pretty self-contained). When $2m > d$,
 which we called the supercritical regime, the Sobolev space $W^{m,2}(U)$ embeds
 continuously into a H{\"o}lder space $C^{r+\gamma}(U)$, so in particular it
-embeds continuously into $C^0(U)$: this is simply the space of continuous
-functions on $U$ equipped with the $L^\infty$ norm. %\footnote{On $C^0(U)$, 
-  % as with all H{\"o}lder spaces, we take $L^\infty$ to be the sup norm, and
-  % \emph{not} the essential sup norm.}     
-Why is this important? Well, given a sequence such that $f_k \to f$ as $k \to
-\infty$ in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the continuous embedding
-property implies $f_k \to f$ as $k \to \infty$ in $L^\infty$ norm, which implies
-$f_k(x) \to f(x)$ for all $x$. Thus we have shown a critical fact:
+embeds continuously into $C^0(U)$, the space of continuous functions on $U$
+equipped with the $L^\infty$ norm (this is the sup norm, and \emph{not} the
+essential sup norm). Why is this important? Well, given a sequence such that
+$f_k \to f$ as $k \to \infty$ in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the
+continuous embedding property implies $f_k \to f$ as $k \to \infty$ in
+$L^\infty$ norm, which implies $f_k(x) \to f(x)$ for all $x$. Thus we have shown
+a critical fact: 
 \begin{quote}
 \centering\it
 For $2m > d$, the point evaluation operator is continuous on $W^{m,2}(U)$.   
@@ -1032,16 +1031,18 @@ Let $f$ to be an infinitely differentiable ``bump'' function that is symmetric
 about the origin, with $f(0) = 1$, and zero outside of the unit $\ell_2$ ball
 $\{x : \|x\|_2 \leq 1\} \subseteq U$. Now define $f_k(x) = f(k x)$, for
 $k=1,2,3,\dots$, so that $f_k$ collapses smoothly to a spike at the origin as $k 
-\to \infty$. Then
+\to \infty$. Then for any $\alpha$,
 \[
-\int \sum_{|\alpha| = m} [D^\alpha f_k(x)]^2 \, dx = 
-k^{d-2m} \int \sum_{|\alpha| = m} [D^\alpha f(u)]^2 \, du, 
+\int [D^\alpha f_k(x)]^2 \, dx = k^{2|\alpha|-d} \int
+[D^\alpha f(u)]^2 \, du,  
 \]
-simply by a change of variables $u = k x$. If $d > 2m$, then as $k \to \infty$,
-we get that $f_k \to 0$ (the zero function) in \smash{$\|\cdot\|_{W^{m,2}(U)}$}
-norm. However, recall $f_k(0) = 1$ for all $k$, so clearly we do not get
-pointwise convergence at the origin. Altogether, this means we \emph{cannot} do
-things like solve the variational problem \eqref{eq:ss_multivariate}.  
+simply by a change of variables $u = k x$. If $d > 2m$, then for any $|\alpha|
+\leq m$, we will have $k^{2|\alpha|-d} \leq k^{2m-d} \to 0$ as $k \to
+\infty$. In other words, $f_k \to 0$ (the zero function) as $k \to \infty$ in
+\smash{$\|\cdot\|_{W^{m,2}(U)}$} norm. However, recall $f_k(0) = 1$ for all $k$,
+so clearly we do not get pointwise convergence at the origin. Altogether, this
+means we \emph{cannot} do things like solve the variational problem
+\eqref{eq:ss_multivariate}.
 
 \subsubsection{Restrictions to the rescue}
 
@@ -1126,11 +1127,12 @@ problem reduces to a generalized ridge regression. See Chapter 7.9 of
 \citet{green1993nonparametric}. Instead of pursuing these details, we'll simply
 move on to RKHS theory, as this will provide us a more general perspective. 
 
-\subsubsection{Can we do anything else?}
-
-Before moving on to RKHS theory, it's worth emphasizing restrictive the
+But before moving on to RKHS theory, it's worth emphasizing restrictive the 
 condition $2m > d$ is. Though it's a very simple calculation, Table
 \ref{tab:supercritical} lists the requirement on $m$ for $d=1$ through 5.  
+This restriction is obviously not desirable: the choice of smoothness order $m$
+(which then dictates the degree of the polyharmonic spline) should be up to the
+modeler, and not dictated by the ambient dimension.
 
 \begin{table}[htb]
 \centering
@@ -1148,20 +1150,20 @@ $d=5$ & $m \geq 3$
 \label{tab:supercritical} 
 \end{table}
 
-This is obviously not desirable: the choice of smoothness order $m$ (which then
-dictates the degree of the polyharmonic spline) should be up to the modeler, and
-not dictated by the ambient dimension.
+\subsubsection{Can we do anything else?}
 
-There is another way. We can ``discretize'' the variational problem
+Yes. There is another way---we can ``discretize'' the variational problem 
 \eqref{eq:ss_multivariate}, specifically, we can substitute the penalty with a
 discrete approximation based on a graph Laplacian, where the graph is built 
 using the input points $x_1,\dots,x_n$. This has the advantage of being (i)
 always well-defined, and (ii) more computationally efficient than solving
 \eqref{eq:ss_multivariate} even when the latter is well-posed. In fact, beyond
-just being well-defined, the graph-based approach can even be minimax rate
-optimal (over norm balls in Sobolev spaces) in regimes where the variational
-problem \eqref{eq:ss_multivariate} is ill-posed. Of course, we're skirting a lot
-of details, but the takeaway you should know is this:  
+just being well-defined or computationally efficient, the graph-based approach
+can even be minimax rate optimal (over norm balls in Sobolev spaces) in regimes
+where the variational problem \eqref{eq:ss_multivariate} is ill-posed. See
+\citet{green2021minimax}, and also \citet{green2023minimax} for a related idea
+with even stronger theory. Of course, we're skirting a lot of details, but the
+takeaway you should know is this:    
 \begin{quote}
 \centering\it
 Consistent estimation over $W^{m,2}([0,1]^d)$---even minimax rate optimal
@@ -1170,13 +1172,8 @@ methods like \eqref{eq:ss_multivariate}, but we can do other things.
 \end{quote}
 However, to qualify the above statement, we \emph{must} be in the Random-X
 setting, where $x_i$, $i=1,\dots,n$ are random. If the input points were fixed,
-then when $2m \leq d$, a construction using ``bump'' functions (just like the
-one we gave above to show that the point evaluation operator is not continuous)
-will show that consistent estimation is impossible. To learn more, see 
-\citet{green2021minimax}. See also \citet{green2023minimax} for a related
-approach that forms a nonparametric estimator by projecting onto eigenvectors of 
-the graph Laplacian (rather than penalizing according to the graph Laplacian)
-and has even stronger theory.  
+then when $2m < d$, a construction using ``bump'' functions (just like the
+one we gave above) will show that consistent estimation is impossible. 
 
 \section{RKHS methods}
 
