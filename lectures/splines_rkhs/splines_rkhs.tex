@@ -1018,7 +1018,8 @@ This means we can do things like solve the variational problem
 \eqref{eq:ss_multivariate}. 
 
 But when $2m \leq d$, we do not get an embedding into $C^0(U)$, and it turns out
-that:   
+that: % TODO: double check what happens when 2m = d? Here an below, with respect
+% to existence of solutions ...
 \begin{quote}
 \centering\it
 For $2m \leq d$, the point evaluation operator is not continuous on
@@ -1069,9 +1070,8 @@ Like the cubic smoothing spline problem \eqref{eq:ss_cubic}, the thin plate
 spline problem \eqref{eq:thin_plate2} (or equivalently, \eqref{eq:thin_plate1}) 
 has a representer theorem for its solution. Unlike the smoothing spline, the
 solution actually depends on the choice of the domain $U$. For $U = \R^d$,  
-% RJT note: again I don't love this because when U = \R^d, we're not really
-% doing minimization over the Sobolev space below. So this is kind of murky
-% territory. 
+% RJT. Again I don't love this because when U = \R^d, we're not really doing
+% minimization over the Sobolev space below. So this is kind of murky territory.  
 one can show that it suffices to consider functions of the form   
 \begin{equation} 
 \label{eq:polyharmonic}
@@ -1337,8 +1337,8 @@ in these lectures on nonparametric regresion. We can also choose particular
 kernels, as given in \eqref{eq:ss_rkhs} and \eqref{eq:tp_rkhs}, to ``reproduce''
 (no pun in intended) smoothing splines and thin plate splines. 
 
-% RJT note: this is kind of cheating, but by putting it in quotes, I feel as if
-% I'm being sufficiently vague about what the actual equivalence is. 
+% RJT. This is kind of cheating, but by putting it in quotes, I feel OK as I'm
+% being sufficiently vague about what the actual equivalence is.   
 
 \subsection{Representer theorem}
 
