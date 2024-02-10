@@ -588,12 +588,12 @@ is commonly where you'll find people (mathematicians) referring to them. But
 they also play an important role in nonparametric statistics. For example, if
 you recall the smoothing spline problem \eqref{eq:ss}, where we said that ``the
 minimization is all functions $f$ for the which the criterion is well-defined
-and finite'', we can actually take the domain here to be the $L^2$ Sobolev 
-space\footnote{We'll ignore here, and in several other places, the fact that 
-  the domain is closed. Recall, we defined Sobolev spaces on open domains, 
-  and we will do the same for H{\"o}lder spaces as well. Hence, we are being 
-  slightly imprecise by abruptly allowing closed domains but it's easiest to do 
-  so for simplicity of exposition.}    
+and finite'', we can take the domain here to be the $L^2$ Sobolev
+space\footnote{We'll ignore here, and in several other places, the fact that the
+  domain is closed. Recall, we defined Sobolev spaces on open domains, and we
+  will do the same for H{\"o}lder spaces as well. Hence, we are being slightly
+  imprecise by abruptly allowing closed domains but it's easiest to do so for
+  simplicity of exposition.}     
 \[
 W^{m,2}([a,b]) = \Big\{ f : [a,b] \to \R \,:\, \text{$D^\alpha f$ exists in the
   weak sense, and $\|D^\alpha f\|_2^2 < \infty$, for all $\alpha \leq m$}
@@ -781,12 +781,11 @@ We move on to methods for fitting multivariate splines in nonparametric
 regression. In a sense, both of the following statements are true. 
 
 \begin{enumerate}
-\item There are several multivariate extensions of spline estimators: e.g,
-  tensor product splines and thin plate splines (among others). We'll cover
-  these. 
-\item There are no real multivariate extensions of spline estimators: tensor
-  product splines and thin plate splines are not ``really'' splines. In fact,
-  even defining a multivariate spline is generally very tricky. 
+\item There are several multivariate extensions of spline estimators, e.g,
+  tensor product and thin plate splines (among others). We'll cover these.  
+\item There are no ``real'' multivariate extensions of spline estimators, and
+  tensor product and thin plate splines are not ``really'' splines. In fact,
+  even defining a multivariate spline is generally very tricky.  
 \end{enumerate}
 
 How can this be? Let's go about this backwards, and start by explaining the very
@@ -898,7 +897,7 @@ product splines
 \Big\{ f_1 \otimes \cdots \otimes f_d : \text{each $f_\ell$ is a $k\th$ degree
   spline with knots in $t_1,\dots,t_r$, for $\ell=1,\dots,d$} \Big\}.  
 \]
-Figure \ref{fig:tensor} displays a few tensor products of bivariate B-splines.
+Figure \ref{fig:tensor} displays a few bivariate tensor products of B-splines. 
 
 \begin{figure}[!t]
 \centering
@@ -983,7 +982,7 @@ example, we can consider the minimization to be over the Sobolev space
 $W^{m,2}(U)$, which recall contains $m$ times weakly differentiable functions
 with $\alpha\th$ derivative in $L^2(U)$, for $|\alpha| \leq m$. (There is a
 subtlety here about what we actually mean here for unbounded domain like $U =
-\R^d$. The problem is that the Sobolev space  $W^{m,2}(\R^d)$ doesn't admit
+\R^d$. The problem is that the Sobolev space $W^{m,2}(\R^d)$ doesn't admit
 polynomials of degree $m-1$, whereas we'd like all of these to be allowed in the
 minimization. See the course website for a supplementary note that explains
 these details.) 
@@ -991,25 +990,23 @@ these details.)
 Is this a good idea? It depends. When $2m > d$, problem
 \eqref{eq:ss_multivariate} is well-defined in the sense that it admits a
 solution. This solution is what we'll eventually call the thin plate spline
-estimator (in a particular case). But when $2m \leq d$, there is a fundamental
-issue with this approach: problem \eqref{eq:ss_multivariate} is
-\emph{ill-defined in the sense that it has no solution}. This is a manifestation
-of the Sobolev embedding theorem.
+estimator (in a specific case). But when $2m < d$, problem
+\eqref{eq:ss_multivariate} is \emph{fundamentally ill-defined and lacks a
+  solution altogether}, as explained next. 
 
 \subsubsection{Return of the Sobolev embedding theorem}
 
 Let's recall what we learned from the Sobolev embedding theorem earlier (if you
-skipped it, since we did say it it was optional, then also that's fine---the
-following explanation should still be pretty self-contained). When $2m > d$,
-which we called the supercritical regime, the Sobolev space $W^{m,2}(U)$ embeds
-continuously into a H{\"o}lder space $C^{r+\gamma}(U)$, so in particular it
-embeds continuously into $C^0(U)$, the space of continuous functions on $U$
-equipped with the $L^\infty$ norm (this is the sup norm, and \emph{not} the
-essential sup norm). Why is this important? Well, given a sequence such that
-$f_k \to f$ as $k \to \infty$ in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the
-continuous embedding property implies $f_k \to f$ as $k \to \infty$ in
-$L^\infty$ norm, which implies $f_k(x) \to f(x)$ for all $x$. Thus we have shown
-a critical fact: 
+skipped it, since we did say it it was optional, then also that's fine---the key 
+conclusion itself should still parse). When $2m > d$, which we called the
+supercritical regime, the Sobolev space $W^{m,2}(U)$ embeds continuously into a
+H{\"o}lder space $C^{r+\gamma}(U)$, so in particular it embeds continuously into 
+$C^0(U)$, the space of continuous functions on $U$ equipped with the $L^\infty$
+norm (this is the sup norm, and \emph{not} the essential sup norm). Why is this
+important? Well, given a sequence such that $f_k \to f$ as $k \to \infty$ in
+\smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the continuous embedding property implies
+$f_k \to f$ as $k \to \infty$ in $L^\infty$ norm, which implies $f_k(x) \to
+f(x)$ for all $x$. Thus we have shown a critical fact: 
 \begin{quote}
 \centering\it
 For $2m > d$, the point evaluation operator is continuous on $W^{m,2}(U)$.   
@@ -1017,22 +1014,20 @@ For $2m > d$, the point evaluation operator is continuous on $W^{m,2}(U)$.
 This means we can do things like solve the variational problem
 \eqref{eq:ss_multivariate}. 
 
-But when $2m \leq d$, we do not get an embedding into $C^0(U)$, and it turns out
-that: % TODO: double check what happens when 2m = d? Here an below, with respect
-% to existence of solutions ...
+But when $2m < d$, we do not get an embedding into $C^0(U)$, and it turns out 
+that: 
 \begin{quote}
 \centering\it
-For $2m \leq d$, the point evaluation operator is not continuous on
-$W^{m,2}(U)$.  
+For $2m < d$, the point evaluation operator is not continuous on $W^{m,2}(U)$.     
 \end{quote}
 This means that there can be a sequence such that $f_k \to f$ as $k \to \infty$
 in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm but $f_k(x) \not\to f(x)$ for some
-$x$. In fact, it's not hard to see this from first principles when $2m < d$.
-Let $f$ to be an infinitely differentiable ``bump'' function that is symmetric
-about the origin, with $f(0) = 1$, and zero outside of the unit $\ell_2$ ball
-$\{x : \|x\|_2 \leq 1\} \subseteq U$. Now define $f_k(x) = f(k x)$, for
+$x$. In fact, it's not hard to see this from first principles. Let $f$ be any
+infinitely differentiable ``bump'' function which is unimodal with a unique max 
+at the origin, of $f(0) = 1$, and which is zero outside of the unit $\ell_2$
+ball $\{x : \|x\|_2 \leq 1\} \subseteq U$. Define $f_k(x) = f(kx)$, for
 $k=1,2,3,\dots$, so that $f_k$ collapses smoothly to a spike at the origin as $k 
-\to \infty$. Then for any $\alpha$,
+\to \infty$. Then for any $\alpha$,   
 \[
 \int [D^\alpha f_k(x)]^2 \, dx = k^{2|\alpha|-d} \int
 [D^\alpha f(u)]^2 \, du,  
@@ -1041,9 +1036,14 @@ simply by a change of variables $u = k x$. If $d > 2m$, then for any $|\alpha|
 \leq m$, we will have $k^{2|\alpha|-d} \leq k^{2m-d} \to 0$ as $k \to
 \infty$. In other words, $f_k \to 0$ (the zero function) as $k \to \infty$ in
 \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm. However, recall $f_k(0) = 1$ for all $k$,
-so clearly we do not get pointwise convergence at the origin. Altogether, this
-means we \emph{cannot} do things like solve the variational problem
-\eqref{eq:ss_multivariate}.
+so clearly we do not get pointwise convergence at the origin. 
+
+The lack of well-defined point evaluations means that we \emph{cannot} generally
+do things like solve the variational problem \eqref{eq:ss_multivariate}.
+
+% RJT. What actually happens with point evaluation when 2m = d? Precise
+% reference? I cannot have one. Though I believe it is still the case that point
+% evaluation is not well-defined when 2m = d.
 
 \subsubsection{Restrictions to the rescue}
 
@@ -1166,9 +1166,9 @@ with even stronger theory. Of course, we're skirting a lot of details, but the
 takeaway you should know is this:    
 \begin{quote}
 \centering\it
-Consistent estimation over $W^{m,2}([0,1]^d)$---even minimax rate optimal
-estimation---is still possible when $2m \leq d$. We can't use variational
-methods like \eqref{eq:ss_multivariate}, but we can do other things.
+Consistent estimation over $W^{m,2}([0,1]^d)$---even rate optimal
+estimation---is still possible for general $m,d$. We can't use always use
+variational methods like \eqref{eq:ss_multivariate}, but we can do other things.     
 \end{quote}
 However, to qualify the above statement, we \emph{must} be in the Random-X
 setting, where $x_i$, $i=1,\dots,n$ are random. If the input points were fixed,
@@ -1284,23 +1284,22 @@ evaluation operators are continuous.
 
 Recall that the Sobolev space $W^{m,2}(U)$, where $U \subseteq \R^d$, is a
 Hilbert space, for any $m \geq 0$. Recall also that point evaluation in a
-Sobolev space is continuous if and only if $2m > d$. Therefore, we learn the
-following:       
-\begin{quote}
-\centering\it
-A Sobolev space $W^{m,2}(U)$ is an RKHS if and only if $2m > d$.
-\end{quote}
-This is an amazing fact. A natural follow-up question: what is the kernel $k$
-corresponding to the Sobolev space, for $2m > d$? Well, it's a bit
-complicated. Are you ready for it? For $U = \R^d$, it's\footnote{The integral 
-  here---hence the kernel---only takes real values, because $\exp(2\pi i
-  (x-y)^\T u) = \cos(2\pi(x-y)^\T u) + i (2\pi i (x-y)^\T u)$ and the integral
-  of the imaginary part is zero since the corresponding integrand is odd.}  
+Sobolev space is continuous if $2m > d$. Therefore, we learn the following:        
+\emph{a Sobolev space $W^{m,2}(U)$ is an RKHS if $2m > d$}. This is an amazing
+fact. 
+
+A natural follow-up question: what is the kernel $k$ corresponding to the
+Sobolev space, for $2m > d$? Well, it's a bit complicated. Are you ready for it?
+For $U = \R^d$, it's
 \[
 k(x,y) = \int \frac{\exp(2\pi i (x-y)^\T u)}{1 + \sum_{0 < |\alpha| \leq m}
   \prod_{j=1}^d (2\pi u_j)^{2\alpha_j}} \, du.
 \]
-While this certainly looks complicated, it simplifies in a few important cases.  
+(The integral here---thus the kernel---only takes real values, since
+$\exp(2\pi i (x-y)^\T u) = \cos(2\pi(x-y)^\T u) + i (2\pi i (x-y)^\T u)$ and the
+integral of the imaginary part is zero because the corresponding integrand is 
+odd.) While this certainly looks complicated, it simplifies in a few important
+cases.   
 % For $d=1$ and $m=1$, we get:
 % \[
 % k(x,y) = \frac{1}{2} \exp(-|x-y|).

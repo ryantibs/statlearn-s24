@@ -814,23 +814,23 @@ tensor-product B-spline basis.
 
 \subsubsection{Fixed-X, subcritical regime}
 
-In the Fixed-X model \eqref{eq:fixed_x}, with $2s \leq d$, the minimax rate over
+In the Fixed-X model \eqref{eq:fixed_x}, with $2s < d$, the minimax rate over
 $W^{s,2}(L; [0,1]^d)$ a constant---meaning that the \emph{there is no estimator
-  that is consistent over $W^{s,2}(L; [0,1]^d)$ in the sense of sup risk!}
+  that is consistent over $W^{s,2}(L; [0,1]^d)$ in the sense of sup risk!} 
 
 The underlying issue here is similar to what we encountered in the splines
-lecture. In what we referred to there as the subcritical regime, $2s \leq d$, we
-cannot really talk about point evaluation in a Sobolev space (as the point
-evaluation operator is not continuous). In a Fixed-X model, however, obtaining
-knowledge of $f(x_i)$, $i=1,\dots,n$ doesn't help you reason about what $f$
-looks like on the rest of the domain $[0,1]^d$, for $f \in W^{s,2}(L;
-[0,1]^d)$. Indeed if $2s < d$, then can make this constructive, using ``bump''
-functions as we did in the last lecture: for any function $f \in W^{s,2}(L;
-[0,1]^d)$, we can perturb its evaluations $f(x_i)$, $i=1,\dots,n$ by defining  
+lecture. Recall, when $2s < d$, we cannot really talk about point evaluation in
+a Sobolev space (as the point evaluation operator is not continuous). In a
+Fixed-X model, therefore, obtaining knowledge of $f(x_i)$, $i=1,\dots,n$ doesn't 
+help you reason about what $f$ looks like on the rest of the domain $[0,1]^d$,
+for $f \in W^{s,2}(L; [0,1]^d)$. Indeed, we can make this idea explicit, using
+``bump'' functions as we did in the last lecture: for any function $f \in
+W^{s,2}(L; [0,1]^d)$, we can perturb its evaluations $f(x_i)$, $i=1,\dots,n$ by
+defining     
 \[
 g_{i,k} = \delta_i \cdot h(k(x-x_i)), \quad i=1,\dots,n, 
 \]
-where $h$ is smooth function that is symmetric about the origin, supported on
+where $h$ is smooth function that is unimodal about the origin, supported on
 the unit ball, and has $h(0) = 1$. Then by the calculation given last time, each 
 \smash{$\|g_{i,k}\|_{W^{s,2}([0,1]^d)} \to 0$} as $k \to \infty$. So defining
 \[
