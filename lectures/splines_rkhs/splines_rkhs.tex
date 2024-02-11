@@ -1041,9 +1041,21 @@ so clearly we do not get pointwise convergence at the origin.
 The lack of well-defined point evaluations means that we \emph{cannot} generally
 do things like solve the variational problem \eqref{eq:ss_multivariate}.
 
-% RJT. What actually happens with point evaluation when 2m = d? Precise
-% reference? I cannot have one. Though I believe it is still the case that point
-% evaluation is not well-defined when 2m = d.
+% RJT. What happens at 2m = d? I believe point evaluation continues to be
+% ill-defined, in the sense that the point evaluation operator is not
+% continuous. It requires a different construction. Lemma 17.3 of Tartar (``An
+% Introduction to Sobolev Spaces'') gives a construction for m = 1 and d = 2
+% based on the Hahn-Banach theorem. I should we see whether it can be extended
+% to the general case. 
+
+% Meanwhile, here is an interesting twist: for p = k = d = 1, the Sobolev space 
+% W^{1,1}(\R) admits a precise representative for each function that is
+% absolutely continuous on compact subintervals of \R. Such a representative is
+% continuous, and hence point evaluation returns to being well-defined. 
+
+% In other words, at the critical boundary, pk = d, it seems the conclusion is
+% that point evaluation is not well-defined in general but can be defined in
+% particular cases. 
 
 \subsubsection{Restrictions to the rescue}
 
@@ -1295,11 +1307,10 @@ For $U = \R^d$, it's
 k(x,y) = \int \frac{\exp(2\pi i (x-y)^\T u)}{1 + \sum_{0 < |\alpha| \leq m}
   \prod_{j=1}^d (2\pi u_j)^{2\alpha_j}} \, du.
 \]
-(The integral here---thus the kernel---only takes real values, since
-$\exp(2\pi i (x-y)^\T u) = \cos(2\pi(x-y)^\T u) + i (2\pi i (x-y)^\T u)$ and the
-integral of the imaginary part is zero because the corresponding integrand is 
-odd.) While this certainly looks complicated, it simplifies in a few important
-cases.   
+(The integral here---thus the kernel---only takes real values, since $\exp(2\pi
+i (x-y)^\T u) = \cos(2\pi(x-y)^\T u) + i (2\pi i (x-y)^\T u)$ and the integral
+of the imaginary part is zero because the corresponding integrand is odd.) While
+this certainly looks complicated, it simplifies in a few important cases.    
 % For $d=1$ and $m=1$, we get:
 % \[
 % k(x,y) = \frac{1}{2} \exp(-|x-y|).
