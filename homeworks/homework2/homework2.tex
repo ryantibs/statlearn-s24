@@ -1,0 +1,310 @@
+\documentclass{article}
+
+\def\ParSkip{} 
+\input{../../common/ryantibs}
+
+\title{Homework 2 \\ \smallskip
+\large Advanced Topics in Statistical Learning, Spring 2024 \\ \smallskip
+Due Friday March 1}
+\date{}
+
+\begin{document}
+\maketitle
+\RaggedRight
+\vspace{-50pt}
+
+\section{Properties of RKHS regression [32 points]}
+
+In this exercise, we will work out some facts about RKHS regression. 
+
+\begin{enumerate}[label=(\alph*)]
+\item First, let $k : \cX \times \cX \to \R$ be an arbitrary kernel. Recall that
+  this means there exists a feature map $\phi : \cX \to \cH$, and a Hilbert
+  space $\cH$ with inner product $\langle \,\cdot\,, \,\cdot\, \rangle_\cH$,
+  such that for any $x,y \in \cX$,    
+  \[
+  k(x,y) = \langle \phi(x), \phi(y) \rangle_\cH.
+  \]
+  Prove that $k$ is positive semidefinite, meaning, it is symmetric, and for any 
+  $n \geq 1$ and $x_1,\dots,x_n \in \cX$, if we define a matrix $K \in \R^{n
+    \times n}$ to have entries $K_{ij} = k(x_i, x_j)$, then  
+  \marginpar{\small [6 pts]}
+  \[
+  a^\T K a \geq 0, \quad \text{for all $a \in \R^n$}.
+  \]
+
+  Hint: express $a^\T K a$ in terms of the feature map $\phi$.
+
+\item Henceforth, suppose that $k$ is the reproducing kernel for $\cH$ (and
+  hence $\cH$ is an RKHS). Recall that this means the following two properties
+  are satisfied: 
+  \begin{enumerate}
+  \item for any $x \in \cX$, the function $k(\cdot, x)$ is an element of $\cH$;   
+  \item for any function $f \in \cH$ and $x \in \cX$, it holds that $\langle f,
+    k(\cdot, x) \rangle_\cH = f(x)$. 
+  \end{enumerate}
+  Let $f$ be a function of the form 
+  \[  
+  f(x) = \sum_{i=1}^n \beta_i k(x, x_i),
+  \]
+  for coefficients $\beta_1,\dots,\beta_n \in \R$. Show that 
+  \marginpar{\small [4 pts]}
+  \[
+  \|f\|_\cH^2 = \sum_{i,j=1}^n \beta_i \beta_j k(x_i,x_j).
+  \]
+
+\item Let $h$ be any function (in $\cH$) that is orthogonal (with respect to
+  $\langle \,\cdot\,, \,\cdot\, \rangle_\cH$) to the linear space of functions
+  of the form in part (b). Prove that 
+  \marginpar{\small [6 pts]}
+  \[
+  h(x_i) = 0, \quad i=1,\dots,n,
+  \]
+  and
+  \[
+  \|f + h\|_\cH \geq \|f\|_\cH, \quad \text{with equality iff $h=0$}. 
+  \]
+
+\item Argue that for any $\lambda > 0$, the infinite-dimensional RKHS
+  optimization problem 
+  \[
+  \minimize_f \; \sum_{i=1}^n (y_i - f(x_i))^2 + \lambda \|f\|_\cH^2
+  \]
+  (where the minimization is implicitly over $f \in \cH$) has a unique solution
+  of the form in part (b), and we can rewrite it as
+  \marginpar{\small [4 pts]}
+  \[
+  \minimize_\beta \; \|Y - K\beta\|_2^2 + \lambda \beta^\T K \beta. 
+  \]
+  for the matrix $K \in \R^{n \times n}$ with entries $K_{ij} = k(x_i, x_j)$. 
+  
+  For the uniqueness part, you may assume may assume that $k$ is a positive
+  definite kernel (strictly), so that $K$ is positive definite matrix
+  (strictly). 
+
+  Hint: let $g = f+h$ and use the results in part (c) to argue that $g$ has a
+  larger criterion value, unless $h=0$. Use part (b) to complete the reduction
+  to finite-dimensional form. 
+
+\item Finally, we establish a cool fact about leave-one-out cross-validation
+  (LOOCV) in RKHS regression problems. Recall that in general, the LOOCV error
+  of an estimator \smash{$\hf$} is defined as
+  \[
+  \mathrm{CV}(\hf) = \frac{1}{n} \sum_{i=1}^n (y_i - \hf^{-i}(x_i))^2,
+  \]
+  where \smash{$\hf^{-i}$} is the estimator trained on all but the $i\th$ pair 
+  $(x_i,y_i)$. Prove the following shortcut formula for LOOCV with an RKHS
+  regression estimator \smash{$\hf$}:  
+  \marginpar{\small [12 pts]}
+  \[
+  \frac{1}{n} \sum_{i=1}^n (y_i - \hf^{-i}(x_i))^2 = 
+  \frac{1}{n} \sum_{i=1}^n \bigg(\frac{y_i - \hf(x_i)}{1-S_{ii}}\bigg)^2,
+  \]
+  where $S=K(K + \lambda I)^{-1}$ is the smoother matrix for the RKHS estimator 
+  (so that the vector of fitted values is given by \smash{$\hat{Y} = SY$}). 
+
+  Hint: prove that for each $i$,
+  \[
+  \hf^{-i}(x_i) = \frac{1}{1-S_{ii}} [\hf(x_i) - S_{ii}y_i].
+  \]
+  The desired result will follow by rearranging, squaring both sides, and
+  summing over $i=1,\dots,n$. There are different ways to establish the above
+  display; one nice way is as follows. Consider solving the RKHS regression
+  problem on 
+  \[
+    (x_1,y_1), \dots, (x_{i-1},y_{i-1}), (x_{i+1},y_{i+1}), \dots, (x_n,y_n), 
+  \]
+  and consider solving it on 
+  \[
+    (x_1,y_1), \dots, (x_{i-1},y_{i-1}), (x_i, \tilde{y}_i), (x_{i+1},y_{i+1}),
+    \dots, (x_n,y_n), 
+  \]
+  where \smash{$\tilde{y}_i = \hf^{-i}(x_i)$}. Argue that these should produce
+  the same solutions. Derive the zero gradient condition for optimality
+  (differentiate the criterion and set it equal to zero) for each problem, and
+  use these to solve for \smash{$\tilde{y}_i = \hf^{-i}(x_i)$}. 
+\end{enumerate}
+
+\section{Minimax lower bounds for H{\"o}lder classes [30 points]}
+
+Consider the $d$-dimensional H{\"o}lder ball    
+\[
+C^s(L; [0,1]^d) = \Big\{ f : [0,1]^d \to \R \,:\, | D^\alpha f (x) - D^\alpha
+f(z) | \leq L \|x-z\|_2 \; \text{for all $|\alpha| = {s-1}$, and $x,z \in
+  [0,1]^d$} \Big\},  
+\]
+where $s \geq 1$ is an integer and $L>0$ is a constant (not growing with $n$).
+Consider i.i.d.\ samples $(x_i, y_i)$, $i=1,\dots,n$ where each
+\[
+y_i = f(x_i) + \epsilon_i, \quad x_i \sim \mathrm{Unif}([0,1]^d) \quad
+\epsilon_i \sim N(0,\sigma^2), \quad \text{and} \quad x_i \indep \epsilon_i.
+\]
+Generalize the calculations given in the minimax theory lecture for the minimax
+lower bound over the Lipschitz ball to show that 
+\marginpar{\small [30 pts]}
+\[
+\inf_{\hf} \, \sup_{f \in C^1(L; [0,1]^d)} \, \E \bigg[ \int_{[0,1]^d} (\hf(x) -
+f(x))^2 \, dx \bigg] \gtrsim n^{-2s/(2s+d)}. 
+\]
+Make sure to write the full calculation from start to finish (even detailing the
+steps that may be analogous to those in lecture).
+
+Hint: consider defining (adhering to the notation used in the lecture)
+\[
+g_\alpha(x) = Lh K \bigg( \frac{x - x_\alpha}{h} \bigg), 
+\]
+where $K$ is any smooth function supported on the unit $\ell_2$ ball $\{ x : 
+\|x\|_2 \leq 1 \}$, with the following properties: $K(0) = 1$, \smash{$0 < \int
+  K(x)^2 \, dx < \infty$}, and $D^\alpha K$ is 1-Lipschitz for all $|\alpha| <
+s$ (we can equivalently assume bounded derivatives: $\|D^\alpha f\|_2 \leq 1$
+for all $\alpha \leq s$). Then follow the calculations in the lecture, where we
+used Fano's method and the Varshamov-Gilbert lemma.
+
+\section{Sub-Gaussian maximal inequalities [24 points]}
+
+In this exercise, we will derive tail bounds on maxima of sub-Gaussian random
+variables $X_i$, $i=1,\dots,n$. Suppose each $X_i$ has mean zero and variance
+proxy $\sigma^2$. (We assume nothing about their dependence structure.)
+
+\begin{enumerate}[label=(\alph*)]
+\item Prove that for any $\lambda \in \R$,
+  \marginpar{\small [6 pts]}
+  \[
+  \exp \bigg( \lambda \E\Big[ \max_{i=1,\dots,n} \, X_i \Big] \bigg) \leq n
+  e^{\sigma^2 \lambda^2/2}.   
+  \]
+
+\item Rearrange the result in part (a), then choose a suitable value of
+  $\lambda$ to show that     
+  \marginpar{\small [4 pts]}
+  \[
+  \E \Big[ \max_{i=1,\dots,n} \, X_i \Big] \leq \sigma \sqrt{2 \log n}. 
+  \]
+
+\item Prove that for any $\lambda \geq 0$,
+  \marginpar{\small [4 pts]}
+  \[
+  \P \Big(\max_{i=1,\dots,n} \, X_i \geq \lambda \Big) \leq ne^{-\lambda^2 /
+    (2\sigma^2)}.  
+  \]
+
+  Hint: use the fact that \smash{$\P(X_i \geq \lambda) \leq e^{-\lambda^2 / 
+    (2\sigma^2)}$}, for any $\lambda \geq 0$, which you can view as a
+  consequence of the tail bound for sub-Gaussian averages when $n=1$. 
+
+\item Reparametrize the result in part (c) to show that for any $t>0$,
+  \marginpar{\small [2 pt]}
+  \[
+  \P \Big(\max_{i=1,\dots,n} \, X_i \geq \sigma \sqrt{2 (\log n + t)} \Big) 
+  \leq e^{-t}.   
+  \]
+
+\item Now, we turn the question of the role of dependence: do correlations 
+  between $X_i$, $i=1,\dots,n$ make their maximum stochastically larger or
+  smaller? Conduct (and include the results of) a small simulation in order to
+  inform your answer. 
+  \marginpar{\small [8 pts]}
+ \end{enumerate}
+
+\section{Risk analysis for the constrained lasso [24 points]}
+
+\def\hSigma{\hat\Sigma}
+
+This exercise explores simple in-sample and out-of-sample risk bounds for the
+lasso. Assume that we observe i.i.d.\ $(x_i,y_i) \in [-M,M]^d \times \R$,
+$i=1,\dots,n$, where each   
+\[
+y_i = x_i^\T \beta_0 + \epsilon_i,
+\]
+and each $\epsilon_i$ is sub-Gaussian with mean zero and variance proxy
+$\sigma^2$. Consider the constrained-form lasso estimator \smash{$\hbeta$}, 
+which solves  
+\[
+\minimize_\beta \; \|Y - X\beta\|_2^2 \;\; \st \;\; \|\beta\|_1 \leq t,    
+\]
+where $Y = (y_1,\dots,y_n) \in \R^n$ is the response vector, $X \in \R^{n \times
+  d}$ is the predictor matrix (whose $i\th$ row is $x_i \in \R^d$), and $t \geq
+0$ is a tuning parameter.
+
+\begin{enumerate}[label=(\alph*)]
+\item Prove that the lasso estimator, with $t=\|\beta_0\|_1$, has in-sample risk
+  satisfying 
+  \marginpar{\small [6 pts]}
+  \[
+  \frac{1}{n} \E \|X\hbeta - X\beta_0\|_2^2 \leq 8M \sigma \|\beta_0\|_1
+  \sqrt{\frac{2 \log(2d)}{n}},  
+  \]
+  where the expectation is taken over the training data $(x_i,y_i)$,
+  $i=1,\dots,n$. 
+
+  Hint: follow the strategy that we used in lecture to derive the ``slow'' rate 
+  for the constrained lasso. Note that this was for fixed $X$, so you will need
+  to condition on $X$ here. Then apply the result from Q2 part (b). You may use
+  the fact that for $\epsilon = (\epsilon_1,\dots,\epsilon_n) \in \R^n$, a
+  vector of i.i.d.\ sub-Gaussians with mean zero and variance proxy $\sigma^2$,
+  and an arbitrary fixed vector $a \in \R^n$, the random variable $a^\T epsilon$
+  is mean zero sub-Gaussian with variance proxy $\sigma^2 \|a\|_2^2$. 
+
+\item For i.i.d.\ mean zero random variables $Z_i$, $i=1,\dots,n$ that lie
+  almost surely in $[a,b]$, prove that for any $t \in \R$, 
+  \marginpar{\small [4 pts]}
+  \[
+  \E \bigg[\exp \bigg(\frac{t}{n} \sum_{i=1}^n Z_i \bigg)\bigg] \leq
+  e^{t^2(b-a)^2/(8n)}.  
+  \]
+
+  Hint: you may use the fact that each $Z_i$ is sub-Gaussian with variance proxy
+  $(b-a)/2$, and the hint about linear combinations of sub-Gaussians from part
+  (a).  
+
+\item Let $\Sigma$ denote the predictor covariance matrix, that is,
+  $\Sigma = \E[x_0x_0^\T]$ for a draw $x_0$ from the predictor distribution. Let
+  \smash{$\hSigma = X^\T X/n$} be the empirical covariance matrix, and let
+  \smash{$V = \hSigma-\Sigma$}. Prove that    
+  \marginpar{\small [4 pts]}
+  \[
+  \E\Big[ \max_{j,k=1,\dots,d} \, |V_{jk}| \Big] \leq M^2 \sqrt{\frac{2
+      \log(2d^2)}{n}}.   
+  \]
+
+  Hint: apply part (b) to the entries of $V$.
+
+\item Prove that the lasso estimator, with $t=\|\beta_0\|_1$, has out-of-sample
+  risk satisfying 
+  \marginpar{\small [10 pts]}
+  \[
+  \E[(x_0^\T \hbeta - x_0^\T \beta_0)^2] \leq 8M \sigma \|\beta_0\|_1
+  \sqrt{\frac{2 \log(2d)}{n}} + 4M^2 \|\beta_0\|_1^2 \sqrt{\frac{2
+      \log(2d^2)}{n}},  
+  \]
+  where the expectation is taken over the training data $(x_i,y_i)$,
+  $i=1,\dots,n$ and an independent draw $x_0$ from the predictor distribution. 
+
+  Hint: first, argue that the in-sample risk and out-of-sample risk can be
+  written as 
+  \[
+  \E\big[ (\hbeta-\beta_0)^\T \hSigma (\hbeta-\beta_0) \big] 
+  \quad \text{and} \quad
+  \E\big[ (\hbeta-\beta_0)^\T \Sigma (\hbeta-\beta_0) \big],
+  \]
+  respectively. (Note that the expectations above are each taken with respect to
+  the training samples $(x_i,y_i)$, $i=1,\dots,n$ only---there is nothing else
+  that is random.) Next, argue that  
+  \[
+  (\hbeta-\beta_0)^\T \Sigma (\hbeta-\beta_0) -
+  (\hbeta-\beta_0)^\T \hSigma (\hbeta-\beta_0) 
+  \leq \sum_{j,k=1}^d |(\hbeta-\beta_0)_j| |(\hbeta-\beta_0)_k| |V_{jk}|,
+  \]
+  where recall \smash{$V_{jk} = (\hSigma-\Sigma)_{jk}$}. Then do a little bit
+  more algebra to bound the right-hand side above and apply the previous parts
+  of this question to conclude the result. 
+
+\item The bound derived in this question for the out-of-sample risk is always
+  larger than that for the in-sample risk (by nature of its construction). As a
+  bonus, investigate: can the out-of-sample risk of the lasso be lower than the
+  in-sample risk? Use a simulation, a pointer to an experiment or result in the
+  literature, or any means of answering that you believe provides a convincing 
+  argument.   
+\end{enumerate}
+
+\end{document}
