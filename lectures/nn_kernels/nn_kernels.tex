@@ -228,7 +228,7 @@ linear smoother we have
 \hat{Y} = S Y,
 \]
 for a matrix $S \in \R^{n \times n}$. Again, the matrix $S$ can depend on the
-inputs $x_1,\dots,x_n$, but not on $y_1,\dots,w_n$. The class of linear
+inputs $x_1,\dots,x_n$, but not on $y_1,\dots,y_n$. The class of linear
 smoothers is quite large, in the sense that it contains many popular estimators,
 as we'll see in the coming sections. 
 
@@ -375,7 +375,7 @@ When $K$ is continuous (Gaussian or Epanechnikov), the kernel smoothing
 estimator is a continuous moving average of the responses. Compared to the kNN
 regression estimator \eqref{eq:knn}, which can be thought of as a raw 
 (discontinuous) moving average of nearby responses, the kernel estimator in 
-\eqref{eq:kernel} is a smooth moving. See Figure \ref{fig:kernel} for an example.
+\eqref{eq:kernel} is a smooth moving average. See Figure \ref{fig:kernel} for an example.
 
 \begin{figure}[tb]
 \centering
@@ -595,7 +595,7 @@ C^{r+\gamma}(L; U) = \Big\{ f : U \to \R \,:\, | D^\alpha f (x) - D^\alpha f(y)
 Note that $C^1(L; U)$ is simply the space of all $L$-Lipschitz functions on
 $U$. Likewise, for an integer $k \geq 1$, $C^k(L; U)$ is the space of all
 functions on $U$ whose order $\alpha\th$ derivative is $L$-Lipschitz, for all
-$\alpha = k-1$.
+$|\alpha| = k-1$.
 
 It can be shown that a minimax lower bound over $C^s(L; [0,1]^d)$, for a
 constant $L>0$, is    
@@ -686,7 +686,7 @@ to return back kernel smoothing but to use a \emph{higher-order kernel}. A
 function $K : \R \to \R$ is said to be a kernel of order $k$ provided that
 \[ 
 \int K(t) \, dt = 1, \quad
-\int t K(t) \, dt = 0, \; j=1,\dots,k-1, \quad
+\int t^j K(t) \, dt = 0, \; j=1,\dots,k-1, \quad
 0 < \int t^k K(t) \, dt < \infty.
 \]
 This means that the kernels we were looking at so far were of order 2. An
