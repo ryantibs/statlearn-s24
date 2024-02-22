@@ -1043,11 +1043,17 @@ do things like solve the variational problem \eqref{eq:ss_multivariate}.
 
 % RJT. What happens at 2m = d? I believe point evaluation continues to be
 % ill-defined, in the sense that the point evaluation operator is not
-% continuous. It requires a different construction. Lemma 17.3 of Tartar (``An
-% Introduction to Sobolev Spaces'') gives a construction for m = 1 and d = 2
-% based on the Hahn-Banach theorem. I should we see whether it can be extended
-% to the general case. 
+% continuous. It requires a different construction, with a log singularity. See
+% e.g., the proof of the second case on page 8 of El Alaoui et al. (2016):   
+% https://proceedings.mlr.press/v49/elalaoui16.pdf. 
+% In our notation, this sets k = 1 and p = d, so it would need to be adapted,
+% and I should see the details through. Also, some of Dejan's papers carry this
+% idea forward. Thanks to Alden for reminding me of all this.  
 
+% Another interesting note, Chapter 17 of Tartar (``An Introduction to Sobolev 
+% Spaces'') proves the result for m = 1 and d = 2 in a couple of different ways,
+% this is another candidate for extending it to higher dimensions.
+ 
 % Meanwhile, here is an interesting twist: for p = k = d = 1, the Sobolev space 
 % W^{1,1}(\R) admits a precise representative for each function that is
 % absolutely continuous on compact subintervals of \R. Such a representative is
