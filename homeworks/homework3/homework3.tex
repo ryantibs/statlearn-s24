@@ -270,7 +270,7 @@ solution as the gradient flow path for least squares regression.
   is  
   \marginpar{\small [8 pts]}
   \[
-  \E \|\hbeta^\gf(t) - \beta_0\|_2^2 = \sum_{i=1}^p \bigg(|v_i^T \beta_0|^2
+  \E \|\hbeta^\gf(t) - \beta_0\|_2^2 = \sum_{i=1}^p \bigg(|v_i^\T \beta_0|^2 
   \exp(-2 t s_i) +  \frac{\sigma^2}{n} \frac{(1 - \exp(-t s_i))^2}{s_i} \bigg), 
   \]
   where recall $X^\T X/n = V^\T S V$ is an eigendecomposition, and we use $s_i$,
@@ -289,7 +289,7 @@ solution as the gradient flow path for least squares regression.
 
   Hint: you may use the fact that the estimation risk of ridge is 
   \[
-  \E \|\hbeta^\ridge(\lambda) - \beta_0\|_2^2 = \sum_{i=1}^p \bigg( |v_i^T
+  \E \|\hbeta^\ridge(\lambda) - \beta_0\|_2^2 = \sum_{i=1}^p \bigg( |v_i^\T 
   \beta_0|^2 \frac{\lambda^2}{(s_i + \lambda)^2} + \frac{\sigma^2}{n}
   \frac{s_i}{(s_i + \lambda)^2} \bigg). 
   \]
