@@ -86,19 +86,19 @@ matrix, $G \in \R^{n \times (r+k+1)}$ with entries
 \[
 G_{ij} = g_j(x_i)
 \]
-is generally very poorly conditioned.
+is generally very poorly conditioned. A much better computational choice, both
+for speed and numerical stability, is called the \emph{B-spline basis}. This was
+a major development in spline theory and is now much the standard in
+software. The key idea is that B-splines have local support: each B-spline basis
+function for a $k\th$ degree spline space is supported on $k+2$ knots. Therefore
+the corresponding basis matrix is banded. It also tends to be much better
+conditioned.   
 
-A much better computational choice, both for speed and numerical stability, is 
-called the \emph{B-spline basis}. This was a major development in spline theory 
-and is now much the standard in software. The key idea is that B-splines have
-local support: each B-spline basis function for a $k\th$ degree spline space is
-supported on $k+2$ knots. Therefore the corresponding basis matrix is banded. It
-also tends to be much better conditioned.  
-
-Defining B-splines is certainly requires more nuance than the truncated power
-basis, and the precise form of a B-spline is unimportant for the rest of this
-lecture. For completeness, you can find the details behind their construction in
-a supplementary note posted on the course website.
+Defining B-splines certainly requires more nuance than defining the truncated
+power basis, and the precise form of a B-spline is unimportant for the rest of
+this lecture. (If you are interested, you can find the details behind their 
+construction in pretty much any standard reference on splines, such as
+\citet{deboor1978practical} or \citet{schumaker2007spline}.) 
 
 \subsection{Regress away!}
 
@@ -984,13 +984,14 @@ with $\alpha\th$ derivative in $L^2(U)$, for $|\alpha| \leq m$. (There is a
 subtlety here about what we actually mean here for unbounded domain like $U =
 \R^d$. The problem is that the Sobolev space $W^{m,2}(\R^d)$ doesn't admit
 polynomials of degree $m-1$, whereas we'd like all of these to be allowed in the
-minimization. See the course website for a supplementary note that explains
-these details.) 
+minimization. The trick is essentially to ``quotient out'' polynomials, which
+must be done with care; if you are curious to see the details, you can refer to  
+\citet{meinguet1979multivariate, wahba1980some}.) 
 
 Is this a good idea? It depends. When $2m > d$, problem
 \eqref{eq:ss_multivariate} is well-defined in the sense that it admits a
 solution. This solution is what we'll eventually call the thin plate spline
-estimator (in a specific case). But when $2m < d$, problem
+estimator (in a specific case). But when $2m \leq d$, problem
 \eqref{eq:ss_multivariate} is \emph{fundamentally ill-defined and lacks a
   solution altogether}, as explained next. 
 
@@ -1003,9 +1004,9 @@ supercritical regime, the Sobolev space $W^{m,2}(U)$ embeds continuously into a
 H{\"o}lder space $C^{r+\gamma}(U)$, so in particular it embeds continuously into 
 $C^0(U)$, the space of continuous functions on $U$ equipped with the $L^\infty$
 norm (this is the sup norm, and \emph{not} the essential sup norm). Why is this
-important? Well, given a sequence such that $f_k \to f$ as $k \to \infty$ in
+important? Well, given a sequence such that $f_N \to f$ as $N \to \infty$ in
 \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, the continuous embedding property implies
-$f_k \to f$ as $k \to \infty$ in $L^\infty$ norm, which implies $f_k(x) \to
+$f_N \to f$ as $N \to \infty$ in $L^\infty$ norm, which implies $f_N(x) \to
 f(x)$ for all $x$. Thus we have shown a critical fact: 
 \begin{quote}
 \centering\it
@@ -1014,54 +1015,46 @@ For $2m > d$, the point evaluation operator is continuous on $W^{m,2}(U)$.
 This means we can do things like solve the variational problem
 \eqref{eq:ss_multivariate}. 
 
-But when $2m < d$, we do not get an embedding into $C^0(U)$, and it turns out 
+But when $2m \leq d$, we do not get an embedding into $C^0(U)$, and it turns out   
 that: 
 \begin{quote}
 \centering\it
-For $2m < d$, the point evaluation operator is not continuous on $W^{m,2}(U)$.     
+For $2m \leq d$, the point evaluation operator is not continuous on
+$W^{m,2}(U)$.       
 \end{quote}
-This means that there can be a sequence such that $f_k \to f$ as $k \to \infty$
-in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm but $f_k(x) \not\to f(x)$ for some
-$x$. In fact, it's not hard to see this from first principles. Let $f$ be any
-infinitely differentiable ``bump'' function which is unimodal with a unique max 
-at the origin, of $f(0) = 1$, and which is zero outside of the unit $\ell_2$
-ball $\{x : \|x\|_2 \leq 1\} \subseteq U$. Define $f_k(x) = f(kx)$, for
-$k=1,2,3,\dots$, so that $f_k$ collapses smoothly to a spike at the origin as $k 
+This means that there can be a sequence such that $f_N \to f$ as $N \to \infty$
+in \smash{$\|\cdot\|_{W^{m,2}(U)}$} norm but $f_N(x) \not\to f(x)$ for some
+$x$. In fact, it's not hard to see this from first principles when $2m < d$. Let
+$f$ be any infinitely differentiable ``bump'' function which is unimodal with a
+unique max at the origin, of $f(0) = 1$, and which is zero outside of the unit
+$\ell_2$ ball $\{x : \|x\|_2 \leq 1\} \subseteq U$. Define $f_N(x) = f(Nx)$, for 
+$N=1,2,3,\dots$, so that $f_N$ collapses smoothly to a spike at the origin as $N 
 \to \infty$. Then for any $\alpha$,   
 \[
-\int [D^\alpha f_k(x)]^2 \, dx = k^{2|\alpha|-d} \int
+\int [D^\alpha f_N(x)]^2 \, dx = N^{2|\alpha|-d} \int
 [D^\alpha f(u)]^2 \, du,  
 \]
-simply by a change of variables $u = k x$. If $d > 2m$, then for any $|\alpha|
-\leq m$, we will have $k^{2|\alpha|-d} \leq k^{2m-d} \to 0$ as $k \to
-\infty$. In other words, $f_k \to 0$ (the zero function) as $k \to \infty$ in
-\smash{$\|\cdot\|_{W^{m,2}(U)}$} norm. However, recall $f_k(0) = 1$ for all $k$,
+simply by a change of variables $u = N x$. If $d > 2m$, then for any $|\alpha|
+\leq m$, we will have $N^{2|\alpha|-d} \leq N^{2m-d} \to 0$ as $N \to
+\infty$. In other words, $f_N \to 0$ (the zero function) as $N \to \infty$ in
+\smash{$\|\cdot\|_{W^{m,2}(U)}$} norm. However, recall $f_N(0) = 1$ for all $N$,
 so clearly we do not get pointwise convergence at the origin. 
 
-The lack of well-defined point evaluations means that we \emph{cannot} generally
-do things like solve the variational problem \eqref{eq:ss_multivariate}.
+When $2m = d$, the construction needs to be adapted (we need to use a
+``multiresolution'' average of bump functions, rather than a single bump
+function), but we can still show that point evaluation is not continuous by
+exhibiting a sequence for which $f_N \to 0$ in the
+\smash{$\|\cdot\|_{W^{m,2}(U)}$} norm, but $f_N(0) = 1$ for all $N$.  
 
-% RJT. What happens at 2m = d? I believe point evaluation continues to be
-% ill-defined, in the sense that the point evaluation operator is not
-% continuous. It requires a different construction, with a log singularity. See
-% e.g., the proof of the second case on page 8 of El Alaoui et al. (2016):   
-% https://proceedings.mlr.press/v49/elalaoui16.pdf. 
-% In our notation, this sets k = 1 and p = d, so it would need to be adapted,
-% and I should see the details through. Also, some of Dejan's papers carry this
-% idea forward. Thanks to Alden for reminding me of all this.  
+% RJT. Credit to Alden for finding this; he found a nice and simple
+% construction. See the note he sent me. Also, a log singularity is another
+% possible construction; as in the proof of the second case on page 8 of El
+% Alaoui et al. (2016): https://proceedings.mlr.press/v49/elalaoui16.pdf. 
 
-% Another interesting note, Chapter 17 of Tartar (``An Introduction to Sobolev 
-% Spaces'') proves the result for m = 1 and d = 2 in a couple of different ways,
-% this is another candidate for extending it to higher dimensions.
- 
-% Meanwhile, here is an interesting twist: for p = k = d = 1, the Sobolev space 
-% W^{1,1}(\R) admits a precise representative for each function that is
-% absolutely continuous on compact subintervals of \R. Such a representative is
-% continuous, and hence point evaluation returns to being well-defined. 
-
-% In other words, at the critical boundary, pk = d, it seems the conclusion is
-% that point evaluation is not well-defined in general but can be defined in
-% particular cases. 
+The lack of continuous point evaluation operator when $2m \leq d$ means that we
+\emph{cannot} generally solve the variational problem  
+\eqref{eq:ss_multivariate}, because its criterion (which features point
+evaluation) is not a continuous function of the optimization variable $f$.    
 
 \subsubsection{Restrictions to the rescue}
 
@@ -1190,7 +1183,7 @@ variational methods like \eqref{eq:ss_multivariate}, but we can do other things.
 \end{quote}
 However, to qualify the above statement, we \emph{must} be in the Random-X
 setting, where $x_i$, $i=1,\dots,n$ are random. If the input points were fixed,
-then when $2m < d$, a construction using ``bump'' functions (just like the
+then when $2m \leq d$, a construction using ``bump'' functions (just like the 
 one we gave above) will show that consistent estimation is impossible. 
 
 \section{RKHS methods}
@@ -1206,14 +1199,11 @@ therein! This is a completely separate concept.
 
 \subsection{Kernels, Hilbert spaces, RKHS}
 
-We start off by defining the ingredients needed for an RKHS. 
-
-\paragraph{Inner products.}
-
-Let $\cH$ be a vector space over $\R$ (for our purposes: think of this as a
-space of real-valued functions). An \emph{inner product} on $\cH$ is a function
-$\langle \,\cdot\,, \,\cdot\, \rangle_\cH : \cH \times \cH \to \R$ satisfying
-three properties, which must hold for all $f,g,h \in \cH$ and all $a,b \in \R$: 
+We start off by defining the ingredients needed for an RKHS. Throughout, let 
+$\cH$ be a vector space over $\R$. For our purposes: think of this as a space of 
+real-valued functions. Recall, an \emph{inner product} on $\cH$ is a function
+$\langle \,\cdot\,, \,\cdot\, \rangle_\cH : \cH \times \cH \to \R$ satisfying,
+for all $f,g,h \in \cH$ and all $a,b \in \R$, the following three properties:   
 \begin{enumerate}
 \item $\langle af + bg, h \rangle_\cH = a \langle f,h \rangle_\cH + b \langle
   g,h \rangle_\cH$;
@@ -1302,9 +1292,9 @@ evaluation operators are continuous.
 
 Recall that the Sobolev space $W^{m,2}(U)$, where $U \subseteq \R^d$, is a
 Hilbert space, for any $m \geq 0$. Recall also that point evaluation in a
-Sobolev space is continuous if $2m > d$. Therefore, we learn the following:        
-\emph{a Sobolev space $W^{m,2}(U)$ is an RKHS if $2m > d$}. This is an amazing
-fact. 
+Sobolev space is continuous if and only if $2m > d$. Therefore, we learn the
+following: \emph{a Sobolev space $W^{m,2}(U)$ is an RKHS if and only if $2m >
+  d$}. This is an amazing fact. 
 
 A natural follow-up question: what is the kernel $k$ corresponding to the
 Sobolev space, for $2m > d$? Well, it's a bit complicated. Are you ready for it?

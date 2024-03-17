@@ -959,12 +959,11 @@ where as before $\alpha = r^2 / (\sigma^2 \gamma)$. Recall that
 \phi_F(z) = -\frac{1}{\gamma} \bigg( \frac{1}{z v_F(z)} + 1 \bigg),
 \]
 and $v_F$ is the companion Stieltjes transform of the limit $F$ of the spectral
-distribution of \smash{$\hSigma$}, as given by Theorem \ref{thm:mp}. It is worth
+distribution of \smash{$\hSigma$}, as given by Theorem \ref{thm:mp}. It is worth 
 noting the close similarity between the results in the general $\Sigma$ case
 \eqref{eq:ridge_risk_bayes_limit1} and in the $\Sigma = I$ case
 \eqref{eq:ridge_risk_iso_limit}, where $m_F$ in the latter plays the role of 
-$\phi_F$ in the former (we have written the asymptotic risk above precisely in
-this way in order to emphasize this connection). 
+$\phi_F$ in the former.
 
 There is an alternative formulation that we can obtain by simply calculating the 
 derivative of $\phi_F$, then reducing it to as simple terms as possible
@@ -981,7 +980,8 @@ to obtain an exact expressions for the limiting risk, either
 \eqref{eq:ridge_risk_bayes_limit1} or equivalently
 \eqref{eq:ridge_risk_bayes_limit2}, these are no longer truly closed-form, as
 the solution $v_F$ to the Silverstein equation \eqref{eq:silverstein} does not
-have an explicit closed-form for general $H$.  
+have an explicit closed-form for general $H$ (though we could compute it
+numerically).  
 
 \paragraph{Optimal tuning.}
 

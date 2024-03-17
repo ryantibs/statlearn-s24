@@ -798,7 +798,7 @@ that estimators are able to achieve this upper bound, even in the regime $2s >
 d$, is a fairly remarkable feature of the Random-X setting ... more on this
 shortly.)   
 
-\subsubsection{Fixed-X, supercritical regime}
+\subsubsection{Fixed-X, $2s > d$}
 
 Consider now the Fixed-X model \eqref{eq:fixed_x}, with a grid design. When $2s
 > d$, one can show that
@@ -812,44 +812,52 @@ obtained using different techniques. One such example is given in
 \citet{nussbaum1987nonparametric}, who considers regression onto a
 tensor-product B-spline basis.   
 
-\subsubsection{Fixed-X, subcritical regime}
+\subsubsection{Fixed-X, $2s \leq d$}
 
-In the Fixed-X model \eqref{eq:fixed_x}, with $2s < d$, the minimax rate over
+In the Fixed-X model \eqref{eq:fixed_x}, with $2s \leq d$, the minimax rate over 
 $W^{s,2}(L; [0,1]^d)$ a constant---meaning that the \emph{there is no estimator
   that is consistent over $W^{s,2}(L; [0,1]^d)$ in the sense of sup risk!} 
 
 The underlying issue here is similar to what we encountered in the splines
-lecture. Recall, when $2s < d$, we cannot really talk about point evaluation in
-a Sobolev space (as the point evaluation operator is not continuous). In a
-Fixed-X model, therefore, obtaining knowledge of $f(x_i)$, $i=1,\dots,n$ doesn't 
-help you reason about what $f$ looks like on the rest of the domain $[0,1]^d$,
-for $f \in W^{s,2}(L; [0,1]^d)$. Indeed, we can make this idea explicit, using
-``bump'' functions as we did in the last lecture: for any function $f \in
-W^{s,2}(L; [0,1]^d)$, we can perturb its evaluations $f(x_i)$, $i=1,\dots,n$ by
-defining     
+lecture. Recall, when $2s \leq d$, we cannot generally talk about point
+evaluation in a Sobolev space, in the sense that the point evaluation operator 
+is not continuous. In a Fixed-X model, therefore, obtaining knowledge of
+$f(x_i)$, $i=1,\dots,n$ doesn't help you reason about what $f$ looks like on the
+rest of the domain $[0,1]^d$, for $f \in W^{s,2}(L; [0,1]^d)$. 
+
+Indeed, we can make this idea explicit. Fix any small $\epsilon>0$, let $f,g \in
+W^{s,2}( (1-\epsilon) L; [0,1]^d)$ be any two functions with \smash{$\|f -
+  g\|_{L^2([0,1]^d)} > 0$}. Suppose Let $\delta_i = g(x_i) - f(x_i)$, for $i =
+1,\dots,n$, and let us perturb the evaluations of $g$ by defining    
 \[
-g_{i,k} = \delta_i \cdot h(k(x-x_i)), \quad i=1,\dots,n, 
+h_{i,N} = \delta_i \cdot h(N(x-x_i)), \quad i=1,\dots,n.
 \]
-where $h$ is smooth function that is unimodal about the origin, supported on
-the unit ball, and has $h(0) = 1$. Then by the calculation given last time, each 
-\smash{$\|g_{i,k}\|_{W^{s,2}([0,1]^d)} \to 0$} as $k \to \infty$. So defining
+When $2s < d$, we can take $h$ to be the ``bump'' function used in the last
+lecture: any smooth function that is unimodal about the origin, supported on  
+the unit ball, with $h(0) = 1$. When $2m = d$, recall, we would have to modify
+this construction somewhat (by taking an average of bump functions at different 
+scales), but the same properties that will be used in what follows would still
+hold. 
+
+Then by the calculation given last time, each
+\smash{$\|h_{i,N}\|_{W^{s,2}([0,1]^d)} \to 0$} as $N \to \infty$. So defining  
 \[
-g = f + \sum_{i=1}^n g_{i,k},
+\tilde{g}_N = g + \sum_{i=1}^n h_{i,N},
 \]
-we find that for large $k$, the function $g$ is also in a Sobolev class
-$W^{s,2}((1+\epsilon) L; [0,1]^d)$ for arbitrarily small $\epsilon>0$, and one
-cannot distinguish estimating $f$ from $g$ in $L^2$ norm (since convergence in 
-Sobolev norm also implies \smash{$\|f - g\|_{L^2([0,1]^d)} \to 0$} as $k \to 
-\infty$). However, their evaluations are arbitrarily different: by construction
-we have 
+we find that for large \smash{$\|\tilde{g}_N - g\|_{W^{s,2}([0,1]^d)} \to 0$} as
+$N \to \infty$. In other words, we have constructed a sequence of functions
+whose evaluations becomes abitrarily close to those of $f$: 
 \[
-f(x_i) = y_i \quad \text{but} \quad g(x_i) = y_i + \delta_i, \quad i =
-1,\dots,n, 
+\lim_{N \to \infty} \, \max_{i=1,\dots,n} \, |f(x_i) - \tilde{g}_N(x_i)| = 0. 
 \]
-where $\delta_i$, $i=1,\dots,n$ were arbitrary values. It should therefore be
-clear, at least at an intuitive level from this construction, that when $2s > d$
-one cannot hope to estimate a Sobolev function in $L^2$ norm by observing 
-its evaluations at fixed points.     
+and yet remains bounded away from $f$ in $L^2$ norm (since convergence in
+Sobolev norm implies converges in $L^2$ norm, of \smash{$\tilde{g}_N$} to $g$): 
+\[
+\lim_{N \to \infty} \, \| f - \tilde{g}_N \|_{L^2([0,1]^d)} = \|f -
+g\|_{L^2([0,1]^d)} > 0. 
+\]
+It should therefore be clear that when $2s \leq d$ one cannot hope to estimate a
+Sobolev function in $L^2$ norm by observing its evaluations at fixed points.       
 
 Reflecting back on the Random-X model, the randomness in the inputs $x_i$,
 $i=1,\dots,n$ finesses this problem. This is in its own right somewhat
