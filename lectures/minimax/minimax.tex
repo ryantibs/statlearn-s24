@@ -794,9 +794,9 @@ error on the order $n^{-2s/(2s+d)}$ over the Sobolev class. For example,
 spectral series estimators, and ``discretized'' versions of such estimators
 which are based on the graph Laplacian. See \citet{green2023minimax}. To be 
 clear there, are no restrictions on $s,d$ in any of this discussion. (The fact
-that estimators are able to achieve this upper bound, even in the regime $2s >
-d$, is a fairly remarkable feature of the Random-X setting ... more on this
-shortly.)   
+that the minimax rate remains $n^{-2s/(2s+d)}$ in the regime $2s \leq d$ is  
+a fairly remarkable feature of the Random-X setting. This will be more clear
+once we cover the failures in the Fixed-X case, given shortly.)
 
 \subsubsection{Fixed-X, $2s > d$}
 
@@ -825,44 +825,48 @@ is not continuous. In a Fixed-X model, therefore, obtaining knowledge of
 $f(x_i)$, $i=1,\dots,n$ doesn't help you reason about what $f$ looks like on the
 rest of the domain $[0,1]^d$, for $f \in W^{s,2}(L; [0,1]^d)$. 
 
-Indeed, we can make this idea explicit. Fix any small $\epsilon>0$, let $f,g \in
-W^{s,2}( (1-\epsilon) L; [0,1]^d)$ be any two functions with \smash{$\|f -
-  g\|_{L^2([0,1]^d)} > 0$}. Suppose Let $\delta_i = g(x_i) - f(x_i)$, for $i =
-1,\dots,n$, and let us perturb the evaluations of $g$ by defining    
+Indeed, we can make this idea explicit. Fix any small $\epsilon>0$, and let $f,g
+\in W^{s,2}((1-\epsilon) L; [0,1]^d)$ be any two functions with \smash{$\|f - 
+  g\|_{L^2([0,1]^d)} > 0$}. Define $\delta_i = g(x_i) - f(x_i)$, and 
 \[
-h_{i,N} = \delta_i \cdot h(N(x-x_i)), \quad i=1,\dots,n.
+h_{i,N}(x) = \delta_i \cdot h(N(x-x_i)), \quad i=1,\dots,n.
 \]
 When $2s < d$, we can take $h$ to be the ``bump'' function used in the last
 lecture: any smooth function that is unimodal about the origin, supported on  
-the unit ball, with $h(0) = 1$. When $2m = d$, recall, we would have to modify
-this construction somewhat (by taking an average of bump functions at different 
-scales), but the same properties that will be used in what follows would still
-hold. 
+the unit ball, with $h(0) = 1$. When $2m = d$, recall, we would need to modify
+this construction somewhat, but the same key conclusions in what follows would
+still hold. By the calculation from last time, for each $i = 1,\dots,n$, we
+have: (i) \smash{$\|h_{i,N}\|_{W^{s,2}([0,1]^d)} \to 0$} as $N \to \infty$, and
+(ii) \smash{$h_{i,N}(x_i) = \delta_i$} for each $N$. We now use these functions
+to perturb the evaluations of $g$, defining: 
+\[
+\tilde{g}_N = g + \sum_{i=1}^n h_{i,N}.
+\]
+Note that the two properties above imply \smash{$\|\tilde{g}_N -
+  g\|_{W^{s,2}([0,1]^d)} \to 0$} as $N \to \infty$ (so for large $N$, we will 
+have \smash{$\tilde{g}_N \in W^{s,2}(L; [0,1]^d)$}), and
+\smash{$\tilde{g}_N(x_i) = f(x_i)$} for each $i=1,\dots,n$ and each $N$. 
 
-Then by the calculation given last time, each
-\smash{$\|h_{i,N}\|_{W^{s,2}([0,1]^d)} \to 0$} as $N \to \infty$. So defining  
+To summarize, we have constructed a sequence of functions, eventually lying in
+the Sobolev space of interest, whose evaluations are equal to those of $f$:
 \[
-\tilde{g}_N = g + \sum_{i=1}^n h_{i,N},
+\max_{i=1,\dots,n} \, |f(x_i) - \tilde{g}_N(x_i)| = 0,
 \]
-we find that for large \smash{$\|\tilde{g}_N - g\|_{W^{s,2}([0,1]^d)} \to 0$} as
-$N \to \infty$. In other words, we have constructed a sequence of functions
-whose evaluations becomes abitrarily close to those of $f$: 
-\[
-\lim_{N \to \infty} \, \max_{i=1,\dots,n} \, |f(x_i) - \tilde{g}_N(x_i)| = 0. 
-\]
-and yet remains bounded away from $f$ in $L^2$ norm (since convergence in
-Sobolev norm implies converges in $L^2$ norm, of \smash{$\tilde{g}_N$} to $g$): 
+yet is bounded away from $f$ in $L^2$ norm (as convergence in Sobolev norm
+implies convergence in $L^2$ norm):  
 \[
 \lim_{N \to \infty} \, \| f - \tilde{g}_N \|_{L^2([0,1]^d)} = \|f -
 g\|_{L^2([0,1]^d)} > 0. 
 \]
 It should therefore be clear that when $2s \leq d$ one cannot hope to estimate a
-Sobolev function in $L^2$ norm by observing its evaluations at fixed points.       
+function in $W^{s,2}(L; [0,1]^d)$ in $L^2$ norm by observing its evaluations at
+fixed points.  
 
-Reflecting back on the Random-X model, the randomness in the inputs $x_i$,
-$i=1,\dots,n$ finesses this problem. This is in its own right somewhat
-remarkable. And it does not seem to be something that the classical
-nonparametric statistics literature has focused very much on. 
+Reflecting back on the Random-X model, in light of the failures just discussed, 
+it is actually pretty remarkable that estimation at the $L^2$ rate
+$n^{-2s/(2s+d)}$ is possible when $2s \leq d$. In a sense, the randomness in the
+inputs $x_i$, $i=1,\dots,n$ sort of finesses the problem of discontinuous point
+evaluation.   
 
 \bibliographystyle{plainnat}
 \bibliography{../../common/ryantibs.bib}
