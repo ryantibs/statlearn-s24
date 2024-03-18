@@ -138,6 +138,7 @@ successes) in machine learning.
 \def\dto{\overset{d}{\to}}
 \def\Risk{\mathrm{Risk}}
 \def\hSigma{\hat\Sigma}
+\def\SNR{\mathrm{SNR}}
 
 We will assume the usual linear model 
 \begin{equation}
@@ -382,10 +383,10 @@ risk profile over $\gamma$.
 \caption{\it The asymptotic risk of least squares \eqref{eq:ls_risk_limit} for
   $\gamma<1$ and min-norm least squares \eqref{eq:ridgeless_risk_iso_limit} for 
   $\gamma>1$, where the latter assumes $\Sigma = I$, the isotropic case.
-  Different colors represent different values of $\mathrm{SNR} = r^2 /
-  \sigma^2$. The points denote finite-sample risks, computed from i.i.d.\ 
-  standard Gaussian features with $n=200$ and $d=[\gamma n]$ for varying
-  $\gamma$. Credit: \citet{hastie2022surprises}.}  
+  Different colors represent different values of $\SNR = r^2 / \sigma^2$. The
+  points denote finite-sample risks, computed from i.i.d.\ standard Gaussian
+  features with $n=200$ and $d=[\gamma n]$ for varying $\gamma$. Credit:
+  \citet{hastie2022surprises}.}   
 \label{fig:risk_iso}
 \end{figure}
 
@@ -462,8 +463,8 @@ Y = X\beta_0 + \delta,
 where the entries of $\delta = W\theta_0 + \epsilon$ are still i.i.d.\ with mean
 zero, and their variance is $\|\theta_0\|_2^2 + \sigma^2$. Denote 
 \[
-r^2=\|\beta_0\|_2^2+\|\theta_0\|_2^2 \quad \text{and} \quad 
-\kappa=\|\beta_0\|_2^2 / r^2,
+r^2 = \|\beta_0\|_2^2 + \|\theta_0\|_2^2 \quad \text{and} \quad  
+\kappa = \|\beta_0\|_2^2 / r^2,
 \]
 which represents the total signal energy and the the fraction of the signal
 energy captured by the observed features, respectively. Then \smash{$L_X(\hbeta;
@@ -483,10 +484,10 @@ Putting these results together leads to the following conclusion:
 \label{eq:ridgeless_risk_iso_mis_limit}
 \Risk_X(\hbeta; \beta_0; \theta_0) \asto 
 \begin{cases}
-r^2(1-\kappa) + \big(r^2(1-\kappa) + \sigma^2\big) 
+r^2 (1-\kappa) + \big(r^2(1-\kappa) + \sigma^2\big) 
 \frac{\gamma}{1-\gamma} & \text{for $\gamma < 1$}, \\
-r^2(1-\kappa) + r^2 \kappa \big(1-\frac{1}{\gamma}\big) 
-+ \big(r^2(1-\kappa) + \sigma^2\big) \frac{1}{\gamma-1} &  
+r^2 (1-\kappa) + r^2 \kappa \big(1-\frac{1}{\gamma}\big) 
++ \big(r^2 (1-\kappa) + \sigma^2\big) \frac{1}{\gamma-1} &   
 \text{for $\gamma > 1$}.
 \end{cases}
 \end{equation}
@@ -509,10 +510,10 @@ $\gamma > 1$.
 \caption{\it The asymptotic risk of min-norm least squares in the misspecified
   setting \eqref{eq:ridgeless_risk_iso_mis_limit}, with isotropic observed and 
   unobserved feature covariances, and $1-\kappa(\gamma) = (1+\gamma)^{-a}$. We
-  set $\mathrm{SNR} = r^2 / \sigma^2 = 5$. Different colors represent different
-  values of $a$. As in Figure \ref{fig:risk_iso}, the points denote
-  finite-sample risks, computed from $n=200$ and $d=[\gamma n]$ for varying 
-  $\gamma$. Credit: \citet{hastie2022surprises}.}   
+  set $\SNR = r^2 / \sigma^2 = 5$. Different colors represent different values
+  of $a$. As in Figure \ref{fig:risk_iso}, the points denote finite-sample
+  risks, computed from $n=200$ and $d=[\gamma n]$ for varying $\gamma$. 
+  Credit: \citet{hastie2022surprises}.}    
 \label{fig:risk_iso_mis}
 \end{figure}
 
@@ -588,9 +589,8 @@ the variance, but decrease the Bayes bias. See Figure \ref{fig:risk_ec_ar}.
   with $\rho$, whereas the variance does not actually depend on $\rho$. The
   bottom row shows an autocorrelated feature model, where $\Sigma_{ij} = 
   \rho^{|i-j|}$. Here the asymptotics cannot be done in closed-form but they can  
-  be efficiently computed numerically: we find that the bias decreases with
-  $\rho$, and the variance increases with $\rho$. Credit:
-  \citet{hastie2022surprises}.}      
+  be computed numerically: we find that the bias decreases with $\rho$, and the
+  variance increases with $\rho$. Credit: \citet{hastie2022surprises}.}       
 \label{fig:risk_ec_ar}
 \end{figure}
 
@@ -790,9 +790,9 @@ The formulae in \eqref{eq:ridge_bias_limit2} (or \eqref{eq:ridge_bias_limit},
 \eqref{eq:ridgeless_fp1}, \eqref{eq:ridgeless_fp2} for the finite-sample
 versions) are the most general ones that we have seen thus far for the ridge and
 ridgeless bias terms, respectively. Combined with our previous general variance
-calculations, this completes the picture for the asymptotic risk of ridge and
-ridgeless regression. For concreteness, the results (writing the bias terms in 
-``semi-asymptotic'' form) are as follows:
+calculations, this completes the picture for the risk of ridge and ridgeless
+regression under proportional asymptotics. For concreteness, the results
+(writing the bias terms in ``semi-asymptotic'' form) are as follows:
 \begin{gather}
 \label{eq:ridge_risk_limit2}
 \bigg| \Risk_X(\hbeta_\lambda; \beta_0) - \bigg[
@@ -804,8 +804,6 @@ ridgeless regression. For concreteness, the results (writing the bias terms in
 \Sigma \big( v_F(0) \Sigma + I \big)^{-2} \beta_0 + \sigma^2 \bigg(
 \frac{v'_F(0)}{v_F(0)^2} - 1 \bigg) \bigg] \bigg| \asto 0.
 \end{gather}
-To be clear, the result in \eqref{eq:ridge_risk_limit2} holds for any $\gamma$
-and that in \eqref{eq:ridgeless_risk_limit2} holds for $\gamma>1$.
 
 \paragraph{Inspecting the asymptotics.}
 
@@ -824,42 +822,84 @@ initially observed in \citet{kobak2020optimal}: if the true signal vector
 $\beta_0$ is strongly aligned with the top eigenvector of $\Sigma$, then for a
 large enough aspect ratio $\gamma_n = d/n$, and large enough SNR, the
 \emph{ridge risk curve will be very flat for small $\lambda$, and achieve its
-  minimum at $\lambda^* = 0$}. Figure \ref{fig:ridge_ar} gives an example with
-the autoregressive feature model.
+  minimum at $\lambda^* = 0$}. 
+
+Figure \ref{fig:ridge_ar} displays an example an the autoregressive feature 
+model. It is worth emphasizing that the dimensionality and SNR here do not need
+to be pathologically high; in the example, they are large but still reasonable:
+$\gamma_n = 6.25$ and $\SNR = 3.33$, and we see that ridgeless interpolation,
+$\lambda^* = 0$, is optimal among the ridge family.     
 
 Beyond empirical evaluation of the deterministic risk equivalents, formal
-arguments can be made about the shape of the asymptotic risk, and location of
-its minimizer $\lambda^*$, as done in \citet{wu2020optimal,
+arguments can be made about the shape of the asymptotic risk curve, and location
+of its minimizer $\lambda^*$, as done in \citet{wu2020optimal,
   richards2021asymptotics} under certain alignment conditions on $\Sigma$ and
-$\beta_0$. Forthcoming work will show that this type of analysis be carried out
-in greater generality (even under distribution shift). 
+$\beta_0$. This type of analysis be carried out in greater generality (even
+under distribution shift), as forthcoming work will show. 
 
 A canonical example of a model in which the signal $\beta_0$ is aligned with
 directions of high variance of $\Sigma$ is a \emph{latent feature model}, where
 the response is driven by a small number of (unobserved) latent features, and
-the observed features are noisy pertubations of these latent features. This is a
-simple ``toy'' model for what actually happens in methods which learn feature 
-representations, like neural networks, which in truth are much more complex. But
-may be a useful model to keep in mind nonetheless, as we continue to chip away
-in understanding interpolation in modern prediction. 
+the observed features are noisy pertubations of these latent features. Similar
+calculations will reveal that the optimal ridge estimator is this problem (for
+high enough dimensionality and SNR) is the ridgeless interpolator. While this is
+a simple ``toy'' model for what actually happens in methods which learn feature  
+representations, like neural networks (which in reality are much more complex),
+it may still be a useful model to keep in mind as we continue to chip away at
+understanding interpolation in modern prediction.    
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.85\textwidth]{ridge_ar.pdf}
-\caption{\it The finite-sample risk of ridge and ridgeless regression (black) 
-  plotted alongside the deterministic equivalents (red) in
-  \eqref{eq:ridge_risk_limit2}, \eqref{eq:ridgeless_risk_limit2}, for an
+\includegraphics[width=0.825\textwidth]{ridge_ar.pdf}
+\caption{\it The finite-sample risk of ridge and ridgeless regression plotted
+  alongside the semi-asymptotic deterministic equivalents in
+  \eqref{eq:ridge_risk_limit2}, \eqref{eq:ridgeless_risk_limit2}, for an 
   autocorrelated feature model with $\Sigma_{ij} =  \rho^{|i-j|}$, with $\rho = 
   0.2$. Here the true signal vector $\beta_0$ is aligned with the top
-  eigenvector of $\Sigma$. We set the signal-to-noise ratio to be $\mathrm{SNR}  
-  = \|\beta_0\|_2^2 / \sigma^2 = 3.33$, and we set $n = 80$ and $p = 500$. In
-  this example, both the finite-sample and asymptotic risk curve achieve their
-  minima at $\lambda^* = 0$.}         
+  eigenvector of $\Sigma$. We set the signal-to-noise ratio to be $\SNR =
+  \|\beta_0\|_2^2 / \sigma^2 = 3.33$, and we set $n = 80$ and $p = 500$. In this
+  example, both the finite-sample and semi-asymptotic risk curve achieve their
+  minima at $\lambda^* = 0$.}          
 \label{fig:ridge_ar}
 \end{figure}
 
-% RJT. We should put in the df versions here as a last paragraph. Credit Francis
-% Bach but also Sollich. Ask Pratik for help assembling what to write here.  
+\paragraph{Degrees of freedom reformulation.}
+
+Finally, we give one last reformulation of the deterministic equivalents,
+following \citet{lejeune2022asymptotics, bach2023high}. Define $\mu_n =
+b_n^{-1}$. Then \eqref{eq:ridge_fp1} becomes 
+\begin{equation}
+\label{eq:ridge_fp3}
+\mu_n = \lambda + \frac{\mu_n}{n} \tr \big[ \Sigma (\Sigma + \mu_n I)^{-1}
+\big], 
+\end{equation}
+and the ridge deterministic bias equivalent \eqref{eq:ridge_bias_limit} can be
+rewritten as
+\begin{equation}
+\label{eq:ridge_bias_limit3}
+\bigg| \underbrace{ \lambda^2 \beta_0^\T (\hSigma + \lambda I)^{-1} \Sigma  
+  (\hSigma + \lambda I)^{-1} \beta_0 \vphantom{ \Big] } }_{B_{\hSigma}(\lambda)}
+- \underbrace{ \mu_n^2 \beta_0^\T(\Sigma + \mu_n I)^{-1} \Sigma (\Sigma + \mu_n
+  I)^{-1} \beta_0 \vphantom{ \Big] }}_{B_\Sigma(\mu_n)} \cdot \frac{1}{1 - \df_n
+  / n} \bigg| \asto 0,      
+\end{equation}
+where we have reparametrized $c_n$ in \eqref{eq:ridge_fp2} using $c_n = 1 / (1 -
+\df_n / n)$, or 
+\begin{equation}
+\label{eq:ridge_fp4}
+\df_n = \tr [ \Sigma^2 (\Sigma + \mu_n I)^{-2} ].
+\end{equation}
+Think of $\mu_n$ as a ``deterministically equivalent regularization level'' to
+$\lambda$. Notice that $\mu_n > \lambda$: the deterministic regularization level
+is always larger than the empirical regularization level, as is apparent from
+\eqref{eq:ridge_fp3}. Think of $\df_n$ as a ``deterministically equivalent
+degrees of freedom''.  
+
+With these interpretations in place, the result in \eqref{eq:ridge_bias_limit3}
+can be explained as follows: the empirical bias \smash{$B_{\hSigma}$} at
+regularization level $\lambda$ is akin to a deterministic bias $B_\Sigma$ at an
+inflated regularization level $\mu_n$, subject to a degrees of freedom
+correction $1 / (1 - \df_n / n)$.  
 
 \bibliographystyle{plainnat}
 \bibliography{../../common/ryantibs}
