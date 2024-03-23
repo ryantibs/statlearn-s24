@@ -15,16 +15,31 @@ Ryan Tibshirani}
 
 \section{Introduction}
 
-Current practice in machine learning suggests that it ``works'' to design neural
-networks that are massively overparametrized, and train them without explicit
-regularization until they interpolate the training data and thus have zero
-training error. Surprisingly, these models can still have good prediction error.     
+Current practice in machine learning has brought to light two ``surprises''
+about the way predictive models can behave in high dimensions. The first:  
 
-You might say: so what? We can and should regularize, and the models will stop  
-interpolating and they'll also perform better! However, in some overparametrized  
-settings, it can actually be the case that even when we tune over the
-regularization strength (in an  estimator like ridge regression), a
-\emph{vanshing amount of regularization is optimal}. 
+\begin{quote} \underline{Observation \#1.} \it 
+Models that are massively overparametrized and trained without explicit
+regularization (which means that they can achieve zero training error) can still
+have good test error.  
+
+Furthermore, in such models, a greater degree of overparametrization can even
+help: by allow a model to be more overparametrized (use even more features), we
+can improve test error.   
+\end{quote}
+
+Your reaction, after adjusting to this surprise, might be: so what? That is, you
+might think the following: we can and should explicitly regularize, and the
+models will stop interpolating the training data (achieve zero training error),
+and they'll also perform better.
+
+However, this is not actually always the case, which is the second surprise: 
+
+\begin{quote} \underline{Observation \#2.} \it  
+In certain high-dimensional problems, it can turn out that when we tune over the
+regularization strength (say, in an estimator like ridge regression), a vanshing
+amount of regularization is optimal.    
+\end{quote}
 
 There has been some influential and thought-provoking experimental work in
 support of these phenomena. See Figure \ref{fig:experiments} for a few
@@ -42,13 +57,14 @@ models are ``as old as statistics itself'', we may learn something new.
 \bigskip \\
 \includegraphics[width=0.98\textwidth]{kobak.png}
 \caption{\it Experiments demonstrating the motivating points raised in the
-  introduction. Interpolating estimators (with zero training error) can still   
-  have good prediction error, as shown in the top row, credit:
-  \citet{belkin2019reconciling}. Tuning over regularization levels can 
-  suggest that vanishing regularization is optimal even in high 
-  dimensions, as shown in the middle row, credit: \citet{liang2020just}, and
-  bottom row, credit: \citet{kobak2020optimal}. The behavior of the prediction
-  risk in the top row is dubbed ``double descent''.}   
+  introduction. First, interpolating estimators (with zero training error) can
+  still have good prediction error especially very high degrees of
+  overparametrization, as shown in the top row, credit:
+  \citet{belkin2019reconciling}. Second, tuning over regularization levels can    
+  suggest that vanishing regularization is optimal even in high dimensions, as
+  shown in the middle row, credit: \citet{liang2020just}, and bottom row,
+  credit: \citet{kobak2020optimal}. The behavior of the prediction risk in the
+  top row is dubbed ``double descent''.}    
 \label{fig:experiments}
 \end{figure}
 
@@ -62,17 +78,15 @@ thing?
 In a sense, the answer is both ``yes'' and ``no''. While traditional
 high-dimensional analyses, like those we studied for the lasso, and newer
 overparametrized analyses are clearly very related, they are also different in
-some key ways. In the study of overparametrized models:
-\begin{itemize}
-\item we focus exclusively on out-of-sample prediction error---unlike many 
-  traditional high-dimensional regression analyses like those for the lasso,
-  which focus on in-sample prediction error (and treat out-of-sample
-  prediction error as somewhat of an afterthought);  
-\item we care about how the risk landscape behaves as we vary the regularization  
-  strength, and particularly what happens for vanishing explicit
-  regularization---unlike many traditional analyses which study regimes where
-  optimal performance is given by strong explicit regularization.   
-\end{itemize}
+some key ways. In the study of overparametrized models we focus exclusively on
+out-of-sample prediction error---unlike many traditional high-dimensional
+regression analyses like those for the lasso, which focus on in-sample
+prediction error (and treat out-of-sample prediction error as somewhat of an
+afterthought). Also, we care about how the risk landscape behaves as we vary the
+regularization strength, and particularly what happens for vanishing explicit 
+regularization---unlike many traditional analyses which study regimes where
+optimal performance is given by strong explicit regularization.    
+
 There are arguably other differences, but those are two of the most salient ones 
 for our discussion.
 
@@ -430,26 +444,26 @@ We can always write
 \label{eq:risk_mis_decomp}
 \Risk_X(\hbeta; \beta_0, \theta_0) = 
 \underbrace{\E \big[ \big( x_0^\T \hbeta - \E[y_0|x_0] \big)^2 \,|\, X 
-  \big]}_{L_X(\hbeta; \beta_0, \theta_0)} +
+  \big]}_{\tilde{R}_X(\hbeta; \beta_0, \theta_0)} +
 \underbrace{\E \big[ \big( \E[y_0|x_0] - \E[y_0|x_0,w_0] \big)^2
-  \big]}_{M(\beta_0, \theta_0)}, 
+  \big]}_{M(\beta_0, \theta_0) \vphantom{\tilde{R}_X}}, 
 \end{equation}
 which is verified by simply verified by first conditioning on $x_0$, then adding
 an subtracting $\E[y_0|x_0]$ inside the square in the definition of
-\smash{$R_X(\hbeta; \beta_0, \theta_0)$} in \eqref{eq:risk_mis}, and expanding, 
-and noting that the cross term is zero:   
+\smash{$\Risk_X(\hbeta; \beta_0, \theta_0)$} in \eqref{eq:risk_mis}, and
+expanding, and noting that the cross term is zero:   
 \[
 \E \big[ \big( x_0^\T \hbeta - \E[y_0|x_0] \big) \,|\, X,x_0 \big]
 \E \big[\big( \E[y_0|x_0] - \E[y_0|x_0,w_0] \big) \,|\, x_0 \big] = 0.
 \]
 
 In other words, from \eqref{eq:risk_mis_decomp}, we learn that the risk in the
-misspecified setting decomposes into two terms: \smash{$L_X(\hbeta; \beta_0,
-  \theta_0)$}, measuring how well we can predict the conditional mean of
-$\E[y_0|x_0]$, and \smash{$M_X(\hbeta; \beta_0, \theta_0)$}, measuring how far
-apart $\E[y_0|x_0]$ and $\E[y_0|x_0,w_0]$ are. We call the latter term the
-\emph{misspecification bias} (note that it does not depend at all on $X$ or
-\smash{$\hbeta$}).   
+misspecified setting decomposes into two terms: \smash{$\tilde{R}_X(\hbeta;
+  \beta_0, \theta_0)$}, measuring how well we can predict the conditional mean
+of $\E[y_0|x_0]$, and $M(\beta_0, \theta_0)$, measuring how far apart
+$\E[y_0|x_0]$ and $\E[y_0|x_0,w_0]$ are. We call the latter term the
+\emph{misspecification bias}.
+% (note that it does not depend at all on $X$ or \smash{$\hbeta$}).    
 
 \subsection{Simplest analysis}
 
@@ -626,25 +640,31 @@ B_X(\hbeta_\lambda; \beta_0) = \lambda^2 \beta_0^\T (\hSigma + \lambda
 I)^{-1} \Sigma (\hSigma + \lambda I)^{-1} \beta_0,
 \end{equation}
 in finite-sample form, and recall that the ridgeless counterpart is in  
-\eqref{eq:ridgeless_bias}. For fixed $\beta_0$, computing the limits of
-\eqref{eq:ridge_bias} and \eqref{eq:ridgeless_bias} are formidable
-calculations. Only recently have results started to appear on exact asymptotic
-limits for the ridge and ridgeless bias terms when $\Sigma$ and $\beta_0$ are
-both arbitrary, see, e.g., \citet{wu2020optimal, richards2021asymptotics,
-  hastie2022surprises}. We mainly follow the calculations in the latter paper
-(as they are, in a sense, the most general anyway), but in keeping with our
-style in these lectures thus far,  we translate them to the language of
-deterministic equivalents. We borrow heavily from the nice presentation given in
-Appendix C of \citet{patil2022facets}.    
+\eqref{eq:ridgeless_bias}. For general $\Sigma$ and $\beta_0$, computing the
+limits of \eqref{eq:ridge_bias} and \eqref{eq:ridgeless_bias} are formidable 
+calculations. The challenge is that \smash{$\lambda^2 (\hSigma + \lambda I)^{-1}
+  \Sigma (\hSigma + \lambda I)^{-1}$} (ridge) and \smash{$(I - \hSigma^+
+  \hSigma) \Sigma (I - \hSigma^+ \hSigma)$} (ridgeless) are complex functions of
+the resolvent of \smash{$\hSigma$}, and do not have obvious deterministic
+equivalents. 
+
+Only recently have results started to appear on exact asymptotic limits for the
+ridge and ridgeless bias terms when $\Sigma$ and $\beta_0$ are both arbitrary,
+see, e.g., \citet{wu2020optimal, richards2021asymptotics,
+  hastie2022surprises}. We mainly follow the calculations in the latter paper 
+(as they are, in a sense, the most general anyway), but we translate them into
+the language of deterministic equivalents to keep consistent with our style in
+these lectures notes thus far. Our presentation borrows heavily from the nice  
+treatment given in Appendix C of \citet{patil2022facets}.     
 
 \paragraph{Ridge bias analysis.}
 
 We start with the ridge bias calculation. We seek to use the generalized
 Marchenko-Pastur theorem from \citet{rubio2011spectral} (Theorem 2 in the ridge
-lecture notes), but it is not as of yet clearly applicable: the challenge is
-that the functional \smash{$\lambda^2 (\hSigma + \lambda I)^{-1} \Sigma (\hSigma
-  + \lambda I)^{-1}$} does not has a transparent deterministic equivalent. There
-is a trick: we rewrite the functional as
+lecture notes), but it is not as of yet clearly applicable. In other words, the
+functional \smash{$\lambda^2 (\hSigma + \lambda I)^{-1} \Sigma (\hSigma +
+  \lambda I)^{-1}$} does not has a transparent deterministic equivalent. There
+is a trick: we rewrite the functional as 
 \begin{equation}
 \label{eq:deriv_trick}
 \lambda^2 (\hSigma + \lambda I)^{-1} \Sigma (\hSigma + \lambda I)^{-1} = 
@@ -850,7 +870,7 @@ understanding interpolation in modern prediction.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[width=0.825\textwidth]{ridge_ar.pdf}
+\includegraphics[width=0.8\textwidth]{ridge_ar.pdf}
 \caption{\it The finite-sample risk of ridge and ridgeless regression plotted
   alongside the semi-asymptotic deterministic equivalents in
   \eqref{eq:ridge_risk_limit2}, \eqref{eq:ridgeless_risk_limit2}, for an 
@@ -863,7 +883,7 @@ understanding interpolation in modern prediction.
 \label{fig:ridge_ar}
 \end{figure}
 
-\paragraph{Degrees of freedom reformulation.}
+\paragraph{``Equivalent regularization'' reformulation.}
 
 Finally, we give one last reformulation of the deterministic equivalents,
 following \citet{lejeune2022asymptotics, bach2023high}. Define $\mu_n =
@@ -871,9 +891,15 @@ b_n^{-1}$. Then \eqref{eq:ridge_fp1} becomes
 \begin{equation}
 \label{eq:ridge_fp3}
 \mu_n = \lambda + \frac{\mu_n}{n} \tr \big[ \Sigma (\Sigma + \mu_n I)^{-1}
-\big], 
+\big].
 \end{equation}
-and the ridge deterministic bias equivalent \eqref{eq:ridge_bias_limit} can be
+Also reparametrize $c_n$ in \eqref{eq:ridge_fp2} using $c_n = 1 / (1 -
+\df_n / n)$, where 
+\begin{equation}
+\label{eq:ridge_fp4}
+\df_n = \tr [ \Sigma^2 (\Sigma + \mu_n I)^{-2} ].
+\end{equation}
+Then the ridge deterministic bias equivalent \eqref{eq:ridge_bias_limit} can be
 rewritten as
 \begin{equation}
 \label{eq:ridge_bias_limit3}
@@ -881,13 +907,7 @@ rewritten as
   (\hSigma + \lambda I)^{-1} \beta_0 \vphantom{ \Big] } }_{B_{\hSigma}(\lambda)}
 - \underbrace{ \mu_n^2 \beta_0^\T(\Sigma + \mu_n I)^{-1} \Sigma (\Sigma + \mu_n
   I)^{-1} \beta_0 \vphantom{ \Big] }}_{B_\Sigma(\mu_n)} \cdot \frac{1}{1 - \df_n
-  / n} \bigg| \asto 0,      
-\end{equation}
-where we have reparametrized $c_n$ in \eqref{eq:ridge_fp2} using $c_n = 1 / (1 -
-\df_n / n)$, or 
-\begin{equation}
-\label{eq:ridge_fp4}
-\df_n = \tr [ \Sigma^2 (\Sigma + \mu_n I)^{-2} ].
+  / n} \bigg| \asto 0.
 \end{equation}
 Think of $\mu_n$ in \eqref{eq:ridge_fp3} as a ``deterministically equivalent
 regularization level'' to $\lambda$. Notice that $\mu_n > \lambda$: the
