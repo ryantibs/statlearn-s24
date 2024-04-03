@@ -405,11 +405,12 @@ and just take $\sigma^2 = 1$. Consider $\cF = C^1(L; [0,1])^d$, the space of
 functions that are $L$-Lipschitz continuous on $[0,1]^d$, and consider pointwise
 risk at the origin, in squared loss, as in \eqref{eq:minimax_pointwise}.     
 
-Recall that in this context, $\theta_0 = f_0(0)$ and $\theta_1 = f_1(0)$, where
+To be clear, in this context, $\theta_0 = f_0(0)$ and $\theta_1 = f_1(0)$, where 
 $f_0,f_1$ are functions on $[0,1]^d$, and they are required to be Lipschitz in
-order for $P_0,P_1 \in \cP$. Let's just fix $f_0 = 0$ (the zero function). Let 
-$K$ be any 1-Lipschitz function supported on the unit $\ell_2$ ball $\{ x :
-\|x\|_2 \leq 1 \}$, such that $K(0) = 1$ and     
+order for $P_0,P_1 \in \cP$. Our loss is $d(\theta_0, \theta_1) = (f_0(0) -
+f_1(0))^2$. Let's just fix $f_0 = 0$ (the zero function). Let $K$ be any
+1-Lipschitz function supported on the unit $\ell_2$ ball $\{ x : \|x\|_2 \leq 1
+\}$, such that $K(0) = 1$ and       
 \[
 0 < \int K(x)^2 \, dx < \infty.
 \]
@@ -548,11 +549,20 @@ won't cover it here. See, e.g., Chapter 2.6 in \citet{tsybakov2009introduction}.
 \label{sec:lipschitz_L2}
 
 We now demonstrate the utility of Fano's method by consdering the same problem
-setup as in Section \ref{sec:lipschitz_pointwise} but with the squared $L^2$
-loss defined with respect the uniform distribution $Q = \mathrm{Unif}([0,1]^d)$,  
+setup as in Section \ref{sec:lipschitz_pointwise} but now with the squared $L^2$
+loss defined with respect the uniform distribution $Q = \mathrm{Unif}([0,1]^d)$,
 \[
 d(\hf, f) = \|\hf - f\|_{L^2(Q)}^2 = \int_{[0,1]^d} (\hf(x) - f(x))^2 \, dx. 
 \]
+Note that in this context, each $\theta_j = f_j$, which is a particular
+Lipschitz regression function, and the loss is \smash{$d(\theta_j, \theta_k) =
+  \|f_j - f_k\|_{L^2(Q)}^2$}. We will define these regression functions below
+using a two-step strategy. First we define locally-supported Lipschitz functions 
+by translating a certain kernel function to be centered at points on a
+grid. Then we use the Varshamov-Gilbert lemma to prune this set of regression
+functions into a set whose minimum gap, as measured by the minimum of $d(f_j,
+f_k)$, is large enough to yield a useful lower bound in Fano's method. 
+
 As before, let $K$ be any 1-Lipschitz function supported on the unit ball $\{ x
 : \|x\|_2 \leq 1 \}$, such that $K(0) = 1$ and  \smash{$0 < \int K(x)^2 \, dx
   < \infty$}. For an integer $r > 0$ to be specified later, define grid points  
@@ -860,7 +870,29 @@ g\|_{L^2([0,1]^d)} > 0.
 \]
 It should therefore be clear that when $2s \leq d$ one cannot hope to estimate a
 function in $W^{s,2}(L; [0,1]^d)$ in $L^2$ norm by observing its evaluations at
-fixed points.  
+fixed points. 
+
+We can formalize this using the Le Cam's two-point hypothesis method, adjusted
+to the case of independent but not identically distributed data, as in
+\eqref{eq:lecam_kl_not_iid}. We set the two distributions to be 
+\begin{gather*}
+P_{0i}: y_i \sim N(f(x_i), 1), \quad i = 1,\dots,n, \\
+P_{1i} : y_i \sim N(\tilde{g}_N(x_i), 1), \quad i=1,\dots,n,
+\end{gather*}
+where in the current context $\theta_0 = f$, \smash{$\theta_1 = \tilde{g}_N$},
+and \smash{$d(\theta_0,\theta_1) = \|f - \tilde{g}_N\|_{L^2([0,1]^d)} \geq
+  1/2$}.  
+
+For simplicity take $f = 0$ and $g = 1$ (constant functions). Then \smash{$\|f - 
+  g\|_{L^2([0,1]^d)} = 1$} and we can take $N$ large enough so that \smash{$\|f
+  - \tilde{g}_N\|_{L^2([0,1]^d)} \geq 1/2$}. Meanwhile, each $\KL(P_{0i},
+P_{1i}) = 0$, since each \smash{$\tilde{g}_N(x_i) = f(x_i)$} by construction,
+and therefore \eqref{eq:lecam_kl_not_iid} yields a minimax lower bound of 
+\[
+R_n \geq \frac{1}{32},
+\]
+where we have used again the fact that squared loss satisfies the quasi-triangle
+inequality \eqref{eq:quasi_triangle} with $C=2$.
 
 Reflecting back on the Random-X model, in light of the failures just discussed, 
 it is actually pretty remarkable that estimation at the $L^2$ rate
