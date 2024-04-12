@@ -1,0 +1,1046 @@
+\documentclass{article}
+
+\def\ParSkip{} 
+\input{../../common/ryantibs}
+\usepackage[normalem]{ulem}
+
+\title{Conformal Prediction Under Distribution Shift \\ \smallskip
+\large Advanced Topics in Statistical Learning, Spring 2024 \\ \smallskip
+Ryan Tibshirani }
+\date{}
+
+\begin{document}
+\maketitle
+\RaggedRight
+\vspace{-50pt}
+
+Note: we're following the context, problem setup, notation, etc. from the last
+lecture on conformal prediction.
+
+In this lecture we cover conformal methods that apply beyond the i.i.d.\
+setting. This is a very active and recent topic of research, and it's possible
+(or even likely) that what's considered fundamental in this area will change in
+the next few years. Until then, there will be numerous topics from which we can
+``pick and choose'' for a lecture like this one. We've chosen three such
+topics---and shamelessly (shamefully?), for two of these, you'll notice an 
+overlap between the authors list and the author of these lecture notes. We
+should be clear that there is plenty of other interesting work out there that we
+can't cover in just one lecture. 
+
+\section{Likelihood-weighted conformal prediction}
+
+\def\tP{\tilde{P}}
+
+We first cover a likelihood-weighted conformal prediction method, due to
+\citet{tibshirani2019conformal}. A primary motivation will be the setting of  
+\emph{covariate shift}, where 
+\begin{equation}
+\label{eq:cov_shift}
+\begin{gathered}
+(X_i, Y_i) \sim P = P_X \times P_{Y|X}, \; \text{independently, for
+  $i=1,\dots,n$}, \\ 
+(X_{n+1}, Y_{n+1}) \sim \tP = \tP_X \times P_{Y|X}, \; \text{independently}. 
+\end{gathered}
+\end{equation}
+Notice that the conditional distribution of $Y|X$ is assumed to be the same for
+both the training and test data, but the distribution of $X$ is allowed to
+change, i.e., we allow \smash{$\tP_X \not= P_X$}. This is a general framework of
+great interest, because it encompasses may important problem settings. For
+example, we could have done some kind of structured covariate sampling for our
+training set (demographically, geographically, etc.) but then we do prediction
+``in the wild'', where the mix of covariates is different.
+
+The first thing we could ask is: does this even matter for conformal prediction?
+That is, if we observed data according to \eqref{eq:cov_shift}, and computed the 
+usual conformal prediction intervals, then would we see a problem with coverage?
+The top row of Figure \ref{fig:airfoil} provides an answer, empirically. This is 
+taken from \citet{tibshirani2019conformal}, and shows the results of an
+experiment in which, over 5000 repetitions, two test sets are drawn: one without  
+covariate shift (results in red), and one with covariate shift (in blue). The
+top left panel shows the test coverage of split conformal prediction intervals 
+(drawn as histograms, over the 5000 repetitions). We can see that coverage fails
+quite noticeably in the covariate shift setting.
+
+\begin{figure}[htb]
+\hspace{-25pt}
+\includegraphics[width=0.525\textwidth]{airfoil_cov.pdf}
+\includegraphics[width=0.525\textwidth]{airfoil_len.pdf}
+\caption{\it Experiments for split conformal prediction under covariate
+  shift. All results are aggregated over 5000 repetitions, each of which
+  randomly forms training and test sets. Top row: the usual split conformal
+  prediction with and without covariate shift. Middle row: weighted split
+  conformal using the true (and in general unknown) likelihood ratio between
+  test and training covariate feature distributions, compared to ordinary split 
+  conformal without covariate shift but in a problem with a comparable effective 
+  sample size. Bottom row: weighted split conformal using an estimated
+  likelihood ratio from running classification with logistic regression or
+  random forests. Credit: \citet{tibshirani2019conformal}.}       
+\label{fig:airfoil}
+\end{figure}
+
+To remedy this, we are going to work with a weighed empirical distribution of 
+conformity scores, rather than the usual (unweighted) empirical distribution. 
+And to approach this argument, it helps to build intuition by looking back at
+the first key idea behind conformal, which recall, used ranks in order to
+construct adjusted empirical quantiles. 
+
+\paragraph{Revisiting the first key idea: rank-based quantiles.}
+
+\def\Quantile{\mathrm{Quantile}}
+
+The last lecture proved the following fact. If $R_1,\dots,R_{n+1}$ are
+exchangeable random variables, then for any $\alpha \in (0,1)$, 
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( \frac{\lceil (1-\alpha)(n+1) \rceil}{n};
+\, \frac{1}{n} \sum_{i=1}^n \delta_{R_i} \bigg) \bigg\} \geq 1-\alpha.
+\]
+We can equivalently express this as
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( \frac{\lceil (1-\alpha)(n+1) \rceil}{n+1}; 
+\, \frac{1}{n+1} \sum_{i=1}^{n+1} \delta_{R_i} \bigg) \geq 1-\alpha,
+\]
+because the event in each of the last two displays is equivalent to the
+$R_{n+1}$ being $\leq$ the \smash{$\lceil (1-\alpha)(n+1) \rceil$} 
+smallest of $R_1,\dots,R_{n+1}$. The last display is itself equivalent to
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \frac{1}{n+1}
+\sum_{i=1}^{n+1} \delta_{R_i} \bigg) \bigg\} \geq 1-\alpha, 
+\]
+because the quantile function of the empirical distribution of
+$R_1,\dots,R_{n+1}$, only changes in increments of $1/(n+1)$ (and will
+automatically round up to the nearest increment until it captured sufficient
+probability mass to exceed $1-\alpha$). Finally, it turns out that we can
+equivalently express the last display as  
+\begin{equation}
+\label{eq:quantile}
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \frac{1}{n+1} \sum_{i=1}^n
+\delta_{R_i} + \frac{1}{n+1} \delta_\infty \bigg) \bigg\} \geq 1-\alpha.
+\end{equation}
+This can be seen by applying the following fact to the complements of the two
+events in the previous two displays: for a discrete distribution $F$ with
+support points $a_1,\dots,a_k \in \R$, denoting $q=\Quantile(\beta; F)$, if we
+reassign the points $a_i > q$ to arbitrary values strictly larger than $q$,
+yielding a new distribution $F'$, then the level $\beta$ quantile remains
+unchanged, $\Quantile(\beta; F) = \Quantile(\beta; F')$.  
+
+\paragraph{Alternate proof of the quantile result \eqref{eq:quantile}.}
+
+We will now prove \eqref{eq:quantile} from a new perspective (no longer by
+reducing it to a statement about the rank of $R_{n+1}$ among
+$R_1,\dots,R_{n+1}$) that will enable us to extend this result to a more general
+setting. The basic idea is to condition on the unlabeled collection of values
+obtained by our random variables $R_1,\dots,R_{n+1}$, then inspect the
+probabilities that the last random variable $R_{n+1}$ attains each one of these
+values.  
+
+Denote by $f$ the probability density function (or mass function, or more
+generally, Radon-Nikodym derivative with respect to an arbitrary base measure)
+of the joint sample $R_1,\dots,R_{n+1}$. Exchangeability means
+\[
+f(r_1,\dots,r_{n+1}) = f(r_{\sigma(1)}, \dots, r_{\sigma(n+1)}), \quad \text{for 
+  all permutations $\sigma$}.
+\] 
+For simplicity, and without loss of generality, assume that there are almost
+surely no ties among the scores $R_1,\dots,R_{n+1}$. Let $E_r$ be the event that 
+$\{R_1,\dots,R_{n+1}\}=\{r_1,\dots,r_{n+1}\}$. Then for each $i$,  
+\begin{align*}
+\P(R_{n+1}=r_i \,|\, E_r)
+&= \frac{\sum_{\sigma : \sigma(n+1)=i} f(r_{\sigma(1)}, \dots, r_{\sigma(n+1)})}  
+{\sum_\sigma f(r_{\sigma(1)}, \dots, r_{\sigma(n+1)})} \\
+&= \frac{\sum_{\sigma: \sigma(n+1)=i} f(r_1, \dots, r_{n+1})}  
+{\sum_\sigma f(r_1, \dots, r_{n+1})} \\
+&= \frac{n!}{(n+1)!} = \frac{1}{n+1}. 
+\end{align*}
+This shows that the distribution of $R_{n+1}|E_r$ is uniform on the set 
+$\{r_1,\dots,r_{n+1}\}$, that is,
+\[
+R_{n+1}|E_r \sim \frac{1}{n+1}\sum_{i=1}^{n+1}\delta_{r_i},
+\]
+and it follows, since $F(Q(t)) \geq t$ for any cumulative distribution function
+$F$ and corresponding quantile function $Q$, that   
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \,
+\frac{1}{n+1}\sum_{i=1}^{n+1}\delta_{r_i} \bigg) \, \bigg| \, 
+E_r\bigg\} \geq 1-\alpha,
+\]
+This is the same as
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \,
+\frac{1}{n+1}\sum_{i=1}^{n+1}\delta_{R_i}\bigg) \, \bigg| \,  
+E_r\bigg\} \geq 1-\alpha,
+\]
+and we can marginalize to obtain   
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \,
+\frac{1}{n+1}\sum_{i=1}^{n+1}\delta_{R_i}\bigg) \bigg\} \geq 1-\alpha.
+\]
+This is the display right above \eqref{eq:quantile}, and by the same argument as
+given above, it is equivalent to \eqref{eq:quantile}.
+
+\subsection{Weighted exchangeability: quantile lemma}
+
+Though the alternate proof we just gave is a bit longer than the standard
+reduction to ranks, it is important because it allows us to move past the
+setting of exchangeable scores $R_1,\dots,R_{n+1}$. In words, after revealing
+(conditioning on) the set of values obtained by the scores, we need to be able
+to answer the following question: \emph{what is the probability with which any
+  given value is that of the test score?}   
+
+This question still has a relatively clean answer when $R_1,\dots,R_{n+1}$ are
+\emph{weighted exchangeable}, which is a generalization of exchangeability, and
+specifies that the random variables have a density (or mass function, or more
+generally, Radon-Nikodym derivative with respect to an arbitrary base measure)
+of the form   
+\begin{equation}
+\label{eq:weighted_exch}
+f(r_1,\dots,r_{n+1}) = \prod_{i=1}^{n+1} w_i(r_i) \cdot g(r_1,\dots,r_{n+1}),  
+\end{equation}
+where $g$ is any function that is permutation invariant, i.e.,
+\smash{$g(r_1,\dots,r_{n+1}) = g(r_{\sigma(1)}, \dots, r_{\sigma(n+1)})$}, for
+any permutation $\sigma$.
+
+We now have the following extension of \eqref{eq:quantile}, stated as a lemma,
+for concreteness.  
+
+\begin{lemma}
+\label{lem:weighted_quant}
+Let $Z_i$, $i=1,\dots,n+1$ be weighted exchangeable random variables, with
+respect to weight functions $w_1,\dots,w_{n+1}$. Assume without loss of
+generality that these are distinct almost surely. Let 
+\[
+R_i = V(Z_i; \, Z_1,\dots,Z_{n+1}), \quad i=1,\dots,n+1, 
+\]
+where $V$ is an arbitrary score function that is symmetric in its last $n+1$
+arguments, and define
+\begin{equation}
+\label{eq:pw}
+p^w_i(z_1,\dots,z_{n+1}) = 
+\frac{\sum_{\sigma : \sigma(n+1)=i} \prod_{j=1}^{n+1} w_j(z_{\sigma(j)})}
+{\sum_\sigma \prod_{j=1}^{n+1} w_j(z_{\sigma(j)})}, \quad i=1,\dots,n+1,   
+\end{equation} 
+where the sums are over permutations $\sigma$ of the numbers $1,\dots,n+1$.
+Then for any $\alpha \in (0,1)$,  
+\begin{equation}
+\label{eq:weighted_quant}
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^n 
+p^w_i(Z_1,\dots,Z_{n+1}) \delta_{R_i} + p^w_{n+1}(Z_1,\dots,Z_{n+1}) 
+\delta_\infty \bigg) \bigg\} \geq 1-\alpha.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+We follow the same general strategy from the alternate proof of
+\eqref{eq:quantile}. Let $E_z$ denote the event that
+$\{Z_1,\dots,Z_{n+1}\}=\{z_1,\dots,z_{n+1}\}$, and let $r_i=V(z_i; \,
+z_1,\dots,z_{n+1})$, for $i=1,\dots,n+1$. Let $f$ be the density function 
+of the joint sample $Z_1,\dots,Z_{n+1}$. For each $i$, we have
+\begin{equation}
+\label{eq:general_calc}
+\P(R_{n+1} = r_i \,|\, E_z) = \P(Z_{n+1} = z_i \,|\, E_z)
+= \frac{\sum_{\sigma : \sigma(n+1)=i} f(z_{\sigma(1)},\dots, z_{\sigma(n+1)})} 
+{\sum_\sigma f(z_{\sigma(1)},\dots, z_{\sigma(n+1)})},
+\end{equation}
+and as $Z_1,\dots,Z_{n+1}$ are weighted exchangeable,
+\begin{align*}
+\frac{\sum_{\sigma : \sigma(n+1)=i} f(z_{\sigma(1)},\dots, z_{\sigma(n+1)})}  
+{\sum_\sigma f(z_{\sigma(1)},\dots, z_{\sigma(n+1)})} &= 
+\frac{\sum_{\sigma : \sigma(n+1)=i} \prod_{j=1}^{n+1} w_j(z_{\sigma(j)}) \cdot 
+  g(z_{\sigma(1)},\dots,z_{\sigma(n+1)})}
+{\sum_\sigma \prod_{j=1}^{n+1} w_j(z_{\sigma(j)}) \cdot
+  g(z_{\sigma(1)},\dots,z_{\sigma(n+1)})}  \\
+&= \frac{\sum_{\sigma : \sigma(n+1)=i} \prod_{j=1}^{n+1} w_j(z_{\sigma(j)})
+  \cdot g(z_1,\dots,z_{n+1})} 
+{\sum_\sigma\prod_{j=1}^{n+1} w_j(z_{\sigma(j)}) \cdot g(z_1,\dots,z_{n+1})} \\ 
+&= p^w_i(z_1,\dots,z_{n+1}).
+\end{align*}
+In other words,  
+\[
+R_{n+1}|E_z \sim \sum_{i=1}^{n+1} p^w_i(z_1,\dots,z_{n+1})\delta_{r_i},
+\]
+which implies that
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^{n+1}
+p^w_i(z_1,\dots,z_{n+1})\delta_{r_i}\bigg) \, \bigg| \, E_z\bigg\} \geq
+1-\alpha.  
+\]
+This is equivalent to  
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^{n+1} 
+p^w_i(Z_1,\dots,Z_{n+1}) \delta_{R_i}\bigg) \, \bigg| \, E_z\bigg\} \geq
+1-\alpha,  
+\]
+and after marginalizing, 
+\[
+\P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^{n+1} 
+p^w_i(Z_1,\dots,Z_{n+1}) \delta_{R_i}\bigg) \bigg\} \geq 1-\alpha. 
+\]
+Finally, by the same arguments as before, we can change the point mass at 
+$R_{n+1}$ to one at $\infty$, which proves \eqref{eq:weighted_quant} as
+desired. 
+\end{proof}
+
+We remark that computation of the probability weights in \eqref{eq:pw} is very
+difficult in general, due to the combinatorial form (note that this actually
+reduces to computing what is known as a \emph{matrix permanent}, which is known
+to be hard). However, for cetain weighted exchangeable structures, it can be
+easy, as we will see a bit later for covariate shift. 
+
+\subsection{Weighted exchangeability: conformal prediction}
+
+\def\hC{\hat{C}}
+
+A weighted version of conformal prediction follows from Lemma
+\ref{lem:weighted_quant}, which we state next as a theorem, for concreteness. 
+
+\begin{theorem}
+\label{thm:weighted_conf}
+Assume that $Z_i=(X_i,Y_i) \in \cX \times \cY$, $i=1,\dots,n+1$ are weighted   
+exchangeable with weight functions $w_1,\dots,w_{n+1}$. Define a weighted
+conformal set (based on the first $n$ samples) at a point $x \in \cX$, with
+nominal error level $\alpha \in (0,1)$ as follows. Let   
+\begin{equation}
+\label{eq:scores}
+\begin{aligned}
+R_i^{(x,y)} &= V\Big( (X_i,Y_i); \, Z_1,\dots,Z_n,(x,y)\Big), \quad
+i=1,\dots,n, \\ 
+R_{n+1}^{(x,y)} &= V\Big( (x,y); \, Z_1,\dots,Z_n,(x,y) \Big), 
+\end{aligned}
+\end{equation}
+for an arbitrary score function $V$ that is symmetric in its last $n+1$
+arguments, and 
+\begin{equation}
+\label{eq:weighted_conf}
+\hC^w_n(x) = \bigg\{ y : R_{n+1}^{(x,y)} \leq \Quantile\bigg( 1-\alpha; 
+\, \sum_{i=1}^n p^w_i\big( Z_1,\dots,Z_n,(x,y) \big) \delta_{R_i^{(x,y)}} + 
+p^w_{n+1}\big( Z_1,\dots,Z_n,(x,y) \big) \delta_\infty \bigg) \bigg\},  
+\end{equation}
+where \smash{$p^w_i$}, $i=1,\dots,n+1$ are as in \eqref{eq:pw}. Then
+\smash{$\hC^w_n$} satisfies     
+\begin{equation}
+\label{eq:weighted_cov}
+\P\big( Y_{n+1} \in \hC^w_n(X_{n+1}) \big) \geq 1-\alpha.  
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Abbreviate \smash{$R_i=R_i^{(X_{n+1},Y_{n+1})}$}, $i=1,\dots,n+1$. By
+construction 
+\[
+Y_{n+1} \in \hC^w_n(X_{n+1}) \iff 
+R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^n p^w_i(Z_1,\dots,Z_{n+1}) 
+\delta_{R_i} + p^w_{n+1}(Z_1,\dots,Z_{n+1}) \delta_\infty \bigg),
+\]
+and applying Lemma \ref{lem:weighted_quant} gives the result.  
+\end{proof}
+
+\paragraph{Split version.}
+
+The split conformal version of the above result can be viewed as a special case  
+where the score function relies on a point predictor that has been fit on an
+external data set. For example, if we take it to be $V(x,y) = |y-\mu_0(x)|$,
+where $\mu_0$ has been fit on a data set $Z_0$, then \eqref{eq:weighted_conf} 
+simplifies to       
+\[
+\hC^w_n(x) = \mu_0(x) \pm \Quantile\bigg(1-\alpha; \, 
+\sum_{i=1}^n p^w_i\big( Z_1,\ldots,Z_n,(x,y) \big) \delta_{|Y_i - \mu_0(X_i)|}
++ p^w_{n+1}\big( Z_1,\ldots,Z_n,(x,y) \big) \delta_\infty \bigg),
+\]
+and by \eqref{eq:weighted_cov}, this has coverage at least $1-\alpha$,
+conditional on $Z_0$.   
+
+\paragraph{CDF form.*}
+
+\def\hF{\hat{F}}
+
+The analogous CDF form of the conformal set in \eqref{eq:weighted_conf} is as
+follows: 
+\begin{equation}
+\label{eq:weighted_cdf}
+\hC^w_n(x) = \bigg\{ y : \sum_{i=1}^{n+1} p^w_i\big( Z_1,\dots,Z_n,(x,y) \big) 
+1\Big\{ R_i^{(x,y)} \leq R^{(x,y)}_{n+1} \Big\} \leq \lceil 1-\alpha \rceil_w
+\bigg\},   
+\end{equation}
+where \smash{$\lceil 1-\alpha \rceil_w = \min\{ \tau \in \mathrm{range}(\hF^w_n)
+  : \tau \geq 1-\alpha\}$} and we use \smash{$\hF^w_n$} to denote the (random)
+CDF of the discrete distribution \smash{$\sum_{i=1}^n p^w_i(Z_1,\dots,Z_n,(x,y))
+  \delta_{R^{(x,y)}_i} + p^w_{n+1}(Z_1,\ldots,Z_n,(x,y)) \delta_\infty$}. 
+Compared to the CDF form of the ordinary unweighted conformal prediction set,
+from the last lecture, the form in \eqref{eq:weighted_conf} is more
+complicated---we need to adjust the nominal level of $1-\alpha$ upwards so that
+it lies in the range of the CDF of the weighted score distribution, and here
+this distribution is random, so the adjustment is itself random. This is the
+main reason we worked with the quantile form in \eqref{eq:weighted_conf} in the
+first place, since we can always use the unadjusted level $1-\alpha$ and
+completely avoid any such complications.
+
+\paragraph{Auxiliary randomization.*}
+
+It is worth noting that we can achieve exact coverage by using auxiliary
+randomization, either in CDF or quantile form. Applying our previous
+randomization trick (from the last lecture) to the CDF form
+\eqref{eq:weighted_cdf} gives  
+\begin{multline*}
+\hC_n^{w,*}(x) = \bigg\{ y : \sum_{i=1}^n p^w_i\big( Z_1,\dots,Z_n,(x,y)
+\big) 1\Big\{ R_i^{(x,y)} < R^{(x,y)}_{n+1} \Big\} +{} \\ U \sum_{i=1}^{n+1} 
+p^w_i\big( Z_1,\dots,Z_n,(x,y) \big) 1\Big\{ R_i^{(x,y)} = R^{(x,y)}_{n+1}
+\Big\} \leq 1-\alpha \bigg\},
+\end{multline*}
+where $U \sim \mathrm{Unif}(0,1)$, independent of everything else. This is
+fairly simple and intuitive---it is free of any level adjustments needed in the   
+unrandomized CDF-based set in \eqref{eq:weighted_cdf}. Meanwhile, we can also 
+randomize the quantile form \eqref{eq:weighted_conf}, as in  
+\begin{multline*}
+\hC^{w,*}_n(x) = \bigg\{ y : R_{n+1}^{(x,y)} \leq {} \\
+B^w \cdot \Quantile\bigg( 1-\alpha; \, \sum_{i=1}^n p^w_i\big(
+Z_1,\dots,Z_n,(x,y) \big) \delta_{R_i^{(x,y)}} + p^w_{n+1}\big(
+Z_1,\dots,Z_n,(x,y) \big) \delta_\infty \bigg) +{} \\ 
+(1-B^w) \cdot \Quantile\bigg( \lfloor 1-\alpha \rfloor_w; \, 
+\sum_{i=1}^n p^w_i\big( Z_1,\dots,Z_n,(x,y) \big) \delta_{R_i^{(x,y)}} +
+p^w_{n+1}\big( Z_1,\dots,Z_n,(x,y) \big) \bigg\},     
+\end{multline*}
+where now \smash{$\lfloor 1-\alpha \rfloor_w = \max\{ \tau \in
+  \mathrm{range}(\hF^w_n) : \tau \leq 1-\alpha\}$} with \smash{$\hF^w_n$}
+denoting the (random) CDF of the discrete distribution \smash{$\sum_{i=1}^n
+  p^w_i(Z_1,\dots,Z_n,(x,y))  \delta_{R^{(x,y)}_i} +
+  p^w_{n+1}(Z_1,\ldots,Z_n,(x,y)) \delta_\infty$} as before, and  
+\[
+B^w \sim \mathrm{Bernoulli}\bigg( \frac{1-\alpha - \lfloor 1-\alpha \rfloor_w}
+{\lceil 1-\alpha \rceil_w - \lfloor 1-\alpha \rfloor_w} \bigg),
+\]
+independent of everything else. Arguably, the randomized conformal set from 
+the second-to-last display is actually less simple and intuitive---we must
+introduce level adjustments that were not needed in
+\eqref{eq:weighted_conf}. Ultimately, either version of the set
+\smash{$\hC^{w,*}_n$} defined above (it is not clear that the two are 
+equivalent) satisfies       
+\[
+\P\big( Y_{n+1} \in \hC^{w,*}_n(X_{n+1}) \big) = 1-\alpha.  
+\]
+
+\subsection{Conformal prediction for covariate shift}
+
+We now show how to apply the above results to get a version of conformal
+prediction for covariate shift problems, as developed in
+\citet{tibshirani2019conformal}. However, we note that Theorem 
+\ref{thm:weighted_conf} can also be used as a basis for developing conformal
+methods in other non-i.i.d.\ settings, such as label shift
+\citep{podkopaev2021distribution}, causal inference \citep{lei2021conformal},
+experimental design \citep{fannjiang2022conformal}, and survival analysis
+\citep{candes2023conformalized}. 
+
+\begin{corollary}
+\label{cor:weighted_conf_cs}
+Assume that $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$ obey the model
+\eqref{eq:cov_shift}.  Assume that \smash{$\tP_X$} is absolutely continuous with
+respect to $P_X$, and denote \smash{$w=d\tP_X/dP_X$}.  Define a weighted
+conformal set (based on the first $n$ samples) at a point $x \in \cX$, with
+nominal error level $\alpha \in (0,1)$, by 
+\begin{equation}
+\label{eq:weighted_conf_cs}
+\hC^w_n(x) = \bigg\{ y : R_{n+1}^{(x,y)} \leq \Quantile\bigg( 1-\alpha; 
+\, \sum_{i=1}^n \pi^w_i(x) \delta_{R_i^{(x,y)}} + \pi^w_{n+1}(x) \delta_\infty 
+\bigg) \bigg\}, 
+\end{equation}
+where \smash{$R_i^{(x,y)}$}, $i=1,\ldots,n+1$ are conformity scores as in
+\eqref{eq:scores}, for an arbitrary score function $V$ that is symmetric in its
+last $n+1$ arguments, and
+\begin{equation}
+\label{eq:pw_cs}
+\pi^w_i(x) = \frac{w(X_i)}{\sum_{j=1}^n w(X_j) + w(x)}, \; i=1,\ldots,n, 
+\quad \text{and} \quad 
+\pi^w_{n+1}(x) = \frac{w(x)}{\sum_{j=1}^n w(X_j) + w(x)}. 
+\end{equation}
+Then \smash{$\hC^w_n$} satisfies 
+\begin{equation}
+\label{eq:weighted_cov_cs}
+\P\big( Y_{n+1} \in \hC^w_n(X_{n+1}) \big) \geq 1-\alpha. 
+\end{equation}
+\end{corollary}
+
+\begin{proof}
+It is straightforward to see that the independent draws $Z_i = (X_i,Y_i)$,
+$i=1,\ldots,n+1$ are weighted exchangeable \eqref{eq:weighted_exch} with
+$w_i\equiv 1$ for $i=1,\ldots,n$, and $w_{n+1}((x,y))=w(x)$. In this special
+case, the probabilities in \eqref{eq:pw} simplify to  
+\[
+p^w_i(z_1,\ldots,z_{n+1}) = \frac{\sum_{\sigma : \sigma(n+1)=i}
+  w(x_i)}{\sum_\sigma w(x_{\sigma(n+1)})} =
+\frac{w(x_i)}{\sum_{j=1}^{n+1}w(x_j)}, \quad i=1,\ldots,n+1,
+\]
+in other words, \smash{$p^w_i(Z_1,\ldots,Z_n,(x,y)) = \pi^w_i(x)$},
+$i=1,\ldots,n+1$, where the latter are as in \eqref{eq:pw_cs}. Applying Theorem 
+\ref{thm:weighted_conf} gives the result.  \end{proof}  
+
+The same remarks as before apply here: a split conformal version follows as a
+special case (via a particular score function) and exact coverage in
+\eqref{eq:weighted_cov_cs} can be achieved by randomizing the quantile in 
+\eqref{eq:weighted_conf_cs}.
+
+Looking back at Figure \ref{fig:airfoil}, the middle row provides an example of
+the (split version of the) conformal set in \eqref{eq:weighted_conf_cs}, with
+oracle knowledge (in orange) of the likelihood ratio weight function
+\smash{$w=d\tP_X/dP_X$}. We can see from the middle left panel that its coverage
+is restored compared to the naive application of conformal in the covariate
+shift problem, from the top row. However, we also see that the dispersion in the
+coverage histogram from weighted conformal (over the 5000 repetitions of the
+experiment) is larger than that of ordinary conformal without covariate shift
+(in red), from the top row. This is because, with non-uniform weights due to
+covariate shift, we are effectively operating at a lower sample size. The middle
+row thus also displays the results (in purple) of usual conformal prediction in
+a problem without covariate shift but at the same effective sample size, defined
+as
+\[
+\hat{n} = \bigg( \frac{\sum_{i=1}^n |w(X_i)|}{\sqrt{\sum_{i=1}^n |w(X_i)|^2}}
+\bigg)^2 = \bigg( \frac{\|w(X_{1:n})\|_1}{\|w(X_{1:n})\|_2} \bigg)^2,
+\]
+where we abbreviate $w(X_{1:n})=(w(X_1),\ldots,w(X_n)) \in \R^n$. We see that
+its coverage dispersion is about the same. Interestingly (and unfortunately for
+the likelihood-weighted method), even with the effective sample size correction, 
+the usual conformal prediction intervals are shorter than the weighted conformal
+prediction intervals, as shown in the middle right panel.
+
+\subsection{Estimating the likelihood ratio from unlabeled data}
+
+Here we describe how to estimate \smash{$w=d\tP_X/dP_X$}, the likelihood ratio
+of interest, when we have access to unlabeled data $X_{n+1},\dots,X_{n+m} \in
+\cX$ at prediction time. (This is sometimes called the transductive or
+semi-supervised setting in machine learning.) We can use any classifier that
+estimated probabilities of class membership, such as logistic regression or
+random forests. We proceed as follows: we train the classifier on feature-class
+pairs $(X_i,C_i)$, $i=1,\ldots,n+m$,  where $C_i=0$ for $i=1,\ldots,n$ and
+$C_i=1$ for $i=n+1,\ldots,n+m$. Noting that   
+\[
+\frac{\P(C=1 | X=x)}{\P(C=0 | X=x)}
+= \frac{\P(C=1)}{\P(C=0)} \frac{d\tP_X}{dP_X}(x),
+\]
+we can thus view the conditional odds ratio $w(x)=\P(C=1|X=x)/\P(C=0|X=x)$ as an
+equivalent representation for the oracle weight function---since we actually
+only need to know the likelihood ratio up to a proportionality 
+constant. Therefore, if \smash{$\hat{p}(x)$} is an estimate of $\P(C=1|X=x)$
+obtained by fitting a probabilistic classifier to the data $(X_i,C_i)$,
+$i=1,\ldots,n+m$, then we can use   
+\begin{equation}
+\label{eq:w_estimate}
+\hat{w}(x) = \frac{\hat{p}(x)}{1-\hat{p}(x)}
+\end{equation}
+as our estimated weight function for the calculation of probabilities
+\eqref{eq:pw_cs}, needed for the weighted conformal set
+\eqref{eq:weighted_conf_cs}. The better calibrated the classifier, the better
+the estimated weighted in \eqref{eq:w_estimate} will be.  
+
+Looking back once again at Figure \ref{fig:airfoil}, the bottom row shows the
+results of using this method to estimate the weights using logistic regression
+(in gray) and random forests (in green). Both classifiers provide reasonably
+good prediction sets in the end (logistic regression is actually well-specified 
+in this experiment, so its favorable performance should not be surprising). 
+
+\subsection{Conformal prediction for structured-X settings}
+
+We saw that a particularly simple and computationally efficient application of
+Theorem \ref{thm:weighted_conf} was the covariate shift problem. Now we go in
+the opposite direction: make it even more general and add the same time, even
+more computationally intractable (at least at face value). The next result
+essentially already follows from what we proved in Lemma
+\ref{lem:weighted_quant} and Theorem \ref{thm:weighted_conf}: we just stop at
+\eqref{eq:general_calc}, without simplifying further. 
+
+\begin{theorem}
+\label{thm:weighted_conf_str}
+Assume that $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$ are distributed according to:
+\begin{gather*}
+(X_1,\dots,X_{n+1}) \sim \Lambda, \\
+Y_i|X_i \sim P_{Y|X}, \; \text{independently, for $i=1,\dots,n+1$}.
+\end{gather*}
+Let $\lambda$ denote the density (or mass function, or more generally,
+Radom-Nikodym derivative with respect to an arbitrary base measure) of
+$\Lambda$. Define a weighted conformal set (based on the first $n$ samples) at a
+point $x \in \cX$, with nominal error level $\alpha \in (0,1)$, by   
+\begin{equation}
+\label{eq:weighted_conf_str}
+\hC^\lambda_n(x) = \bigg\{ y : R_{n+1}^{(x,y)} \leq \Quantile\bigg( 1-\alpha;  
+\, \sum_{i=1}^n p^\lambda_i(X_1,\dots,X_n,x) \delta_{R_i^{(x,y)}} +
+p^\lambda_{n+1}(X_1,\dots,X_n,x) \delta_\infty \bigg) \bigg\},   
+\end{equation}
+where \smash{$R_i^{(x,y)}$}, $i=1,\ldots,n+1$ are conformity scores as in
+\eqref{eq:scores}, for an arbitrary score function $V$ that is symmetric in its 
+last $n+1$ arguments, and
+\begin{equation}
+\label{eq:pw_str}
+p^\lambda_i(x_1,\dots,x_{n+1}) = 
+\frac{\sum_{\sigma : \sigma(n+1)=i} \lambda(x_{\sigma(1)},\dots,
+  x_{\sigma(n+1)})} {\sum_\sigma \lambda(x_{\sigma(1)},\dots, x_{\sigma(n+1)})},
+\quad i=1,\dots,n+1.  
+\end{equation}
+Then \smash{$\hC^\lambda_n$} satisfies 
+\begin{equation}
+\label{eq:weighted_cov_str}
+\P\big( Y_{n+1} \in \hC^\lambda_n(X_{n+1}) \big) \geq 1-\alpha. 
+\end{equation}
+\end{theorem}
+
+Computation of the weights in \eqref{eq:pw_str} is now even more difficult than
+\eqref{eq:pw} in the weighted exchangeable setting (even more difficult than a
+matrix permanent, since $\lambda$ could in principle depend in a complicated way
+on the order of its inputs). That said, the above theorem still produces a
+conformal set \eqref{eq:weighted_conf_str} with the very general guarantee
+\eqref{eq:weighted_cov_str}, which is interesting. This may be useful (and
+computable) in certain structured-X settings, for example, where the sequence
+$X_1,\dots,X_{n+1}$ has some kind of Markov structure.
+
+\section{Custom-weighted conformal prediction}
+
+\def\tw{\tilde{w}}
+\def\TV{\mathrm{TV}}
+
+We next cover a custom-weight conformal prediction method, due to
+\citet{barber2023conformal}. In comparison to the likelihood-weighted method
+in the previous section, the weights considered in the current section will be
+\emph{fixed} (not a function of the data) but \emph{arbitrary}. The theory, as
+we'll see, is also quite different; in a sense, it is more general in
+scope. We'll only cover this at a relatively high level (no proof details). 
+
+To state the main theorems, we'll need introduce a few additional pieces of  
+notation. As before, let $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$ be data points (with
+the last one $Z_{n+1}=(X_{n+1},Y_{n+1})$ serving as the test point), and $V$ 
+a score function. The additional notation is as follows.   
+
+\begin{itemize}
+\item Denote by $Z = (Z_1,\dots,Z_{n+1})$ the data vector (an ordered
+  sequence). 
+\item Denote by $Z^i$ the data vector after swapping components $i$ and
+  $n+1$. 
+\item Denote by $R(Z)$ the score vector, with components $R(Z)_j = V(Z_j; Z)$. 
+\item Denote by $R(Z^i)$ the score vector had the data vector been $Z^i$, with
+  components \smash{$R(Z^i)_j = V(Z^i_j; Z^i)$}.     
+\end{itemize}
+
+\subsection{Custom weights, symmetric score function}
+
+Note that in the current notation, symmetry of $V$ in its last $n+1$
+arguments---which is the typical assumption for the conformity score 
+function---implies that we have $V(Z_j; Z) = V(Z_j; Z_\sigma)$, for any
+permutation $\sigma$, where \smash{$Z_\sigma = (Z_{\sigma(1)}, \dots,
+  Z_{\sigma(n+1)})$}. Thus under this symmetry condition, we may write $R(Z^i) =
+R(Z)^i$.   
+% \[
+% R(Z^i)_j = 
+% \begin{cases}
+% R(Z)_j & j \not= i,n+1 \\
+% R(Z)_i & j = n+1 \\
+% R(Z)_{n+1} & j = i.
+% \end{cases}
+% \]
+
+Now we can state the first main result, for custom-weighted conformal prediction.
+
+\begin{theorem}
+\label{thm:weighted_conf_nex}
+Let $w_i \in [0,1]$, $i=1,\dots,n$ be fixed and arbitrary weights, and define 
+\begin{equation}
+\label{eq:tw}
+\tw_i = \frac{w_i}{w_1 + \cdots + w_n + 1}, \; i=1,\ldots,n, 
+\quad \text{and} \quad 
+\tw_{n+1} = \frac{1}{w_1 + \cdots + w_n + 1}.
+\end{equation}
+Define a weighted conformal set (based on the first $n$ samples) at a point
+$x \in \cX$, with nominal error level $\alpha \in (0,1)$, by   
+\begin{equation}
+\label{eq:weighted_conf_nex}
+\hC^w_n(x) = \bigg\{ y : R_{n+1}^{(x,y)} \leq \Quantile\bigg( 1-\alpha; 
+\, \sum_{i=1}^n \tw_i \, \delta_{R_i^{(x,y)}} + \tw_{n+1} \, \delta_\infty
+\bigg) \bigg\},   
+\end{equation}
+where \smash{$R_i^{(x,y)}$}, $i=1,\ldots,n+1$ are conformity scores as in
+\eqref{eq:scores}, for an arbitrary score function $V$ that is symmetric in its
+last $n+1$ arguments. Then with \emph{no} assumptions on the joint distribution
+of $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$, the set \smash{$\hC^w_n$} satisfies
+\begin{equation}
+\label{eq:weighted_cov_nex}
+\P\big( Y_{n+1} \in \hC^w_n(X_{n+1}) \big) \geq 1-\alpha - \sum_{i=1}^n 
+\tw_i \cdot \TV(R(Z), R(Z^i)),
+\end{equation}
+where $\TV(A,B)$ is the total variation (TV) distance between the distributions
+of random variables $A,B$.  
+\end{theorem}
+
+Observe that the normalization step in \eqref{eq:tw} assigns a unit weight to 
+the test point, and then renormalizes (so that the new weights have unit
+sum). As the initial weights were all between 0 and 1, this means
+\smash{$\tw_{n+1} \geq \tw_i$}, for all $i=1,\dots,n$. The set in
+\eqref{eq:weighted_conf_nex} reduces to the (unweighted) conformal prediction
+method set when $w_1 = \cdots = w_n = 1$.  
+
+We can interpret the result in \eqref{eq:weighted_cov_nex} as follows. If the
+distribution of the test data point $Z_{n+1}$ drifts from that of the training
+data, but we are able identify a priori which training data points will be most
+\emph{representative} of the test distribution, then we can upweight these
+points and downweight the others. This would result in a small coverage gap, 
+where  
+\begin{equation}
+\label{eq:coverage_gap}
+\text{coverage gap} = \sum_{i=1}^n \tw_i \cdot \TV(R(Z), R(Z^i))
+\end{equation}
+(since we have small weights multiplying large TV distances, and large weights 
+multiplying small TV distances.) Of course, choosing a good weights
+scheme---identifying a priori which training points are representative of the
+test data distribution---is an important problem unto itself. In certain
+structured data settings, such as problems with time series or spatial
+structure, progress towards general methodology for crafting weights seems more
+tangible than others. Figure \ref{fig:electricity} gives an example using an
+exponentially decaying weight scheme in a time series problem, from
+\citet{barber2023conformal}.  
+
+\begin{figure}[htb]
+\centering
+\includegraphics[width=0.925\textwidth]{electricity.pdf}
+\caption{\it Experiments for split conformal prediction under distribution
+  drift. Top row: coverage and width in a time series problem, for the usual
+  conformal prediction (CP), weighted conformal with exponentially decaying
+  weights and least squares as the prediction algorithm (NexCP+LS), and the same
+  method but now with weighted least squares as the prediction algorithm 
+  (NexCP+WLS). Bottom row: the same metrics and methods on a permuted version of 
+  the time series data set. Credit: \citet{barber2023conformal}.}        
+\label{fig:electricity}
+\end{figure}
+
+We now make several further remarks. 
+
+\paragraph{Split version.}
+
+As before, the split conformal version of the above result can be viewed as a
+special case where the score function relies on a point predictor fit on an
+external data set. For example, if we take it to be $V(x,y) = |y-\mu_0(x)|$,
+where $\mu_0$ has been fit on a data set $Z_0$ then \eqref{eq:weighted_conf_nex}
+simplifies to            
+\[
+\hC^w_n(x) = \mu_0(x) \pm \Quantile\bigg(1-\alpha; \, \sum_{i=1}^n \tw_i \,
+\delta_{|Y_i - \mu_0(X_i)|} + \tw_{n+1} \, \delta_\infty \bigg),
+\]
+and \eqref{eq:weighted_cov_nex} becomes
+\[
+\P\big( Y_{n+1} \in \hC^w_n(X_{n+1}) \,\big|\, Z_0 \big) \geq 1-\alpha -
+\sum_{i=1}^n \tw_i \cdot \TV\big( R(Z), R(Z^i) \,\big|\, Z_0 \big), 
+\]
+where $\TV(A, B \,|\, C)$ is the TV distance between the conditional
+distributions of $A|C$ and $B|C$. If $Z_0$ is independent of $Z$, then the
+coverage gap is just a before, in \eqref{eq:coverage_gap}.
+
+\paragraph{The i.i.d.\ setting.}
+
+When $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$ are i.i.d.\ (or more generally,
+exchangeable), we are back to the traditional setting for conformal
+prediction. In this case, there is no slack in \eqref{eq:weighted_cov_nex},
+since exchangeability implies \smash{$R(Z) \overset{d}{=} R(Z^i)$} and thus
+$\TV(R(Z), R(Z^i)) = 0$ for each $i$, and hence \eqref{eq:weighted_cov_nex}
+collapses to an exact $1-\alpha$ coverage guarantee. This not only reproduces
+the standard result for ordinary conformal, when we take $w_1 = \cdots = w_n =
+1$, but also shows us something new: in the i.i.d.\ (or exchangeable) setting,
+we can use arbitrary weights and still get exact coverage with weighted
+conformal prediction. 
+
+\paragraph{Coverage gap bounds.}
+
+It is worth noting a few upper bounds for the coverage gap in
+\eqref{eq:coverage_gap}. First, 
+\[
+\text{coverage gap} \leq \sum_{i=1}^n \tw_i \cdot \TV(Z, Z^i),
+\]
+since the TV distance between $f(A),f(B)$ is always less than that between
+$A,B$. The bound in the above display is easier to interpret, but can also be
+much larger than that in \eqref{eq:coverage_gap}. (For example, think about the
+case of a high-dimensional feature space, and a score function that ignores all
+but a few relevant features for prediction.) Second, if $Z_i$, $i=1,\dots,n+1$
+are independent (but not identically distributed), then it can be shown that 
+\[
+\text{coverage gap} \leq 2\sum_{i=1}^n \tw_i \cdot \TV(Z_i, Z_{n+1}).
+\]
+This lends more direct intuition to the idea that we want to assign large
+weights to training points whose distributions are representative of the test 
+distribution. 
+
+\paragraph{CDF form.*}
+
+The analogous CDF form of the conformal set in \eqref{eq:weighted_conf_nex} is
+as follows: 
+\begin{equation}
+\label{eq:weighted_cdf_nex}
+\hC^w_n(x) = \bigg\{ y : \sum_{i=1}^{n+1} \tw_i \, 1\Big\{ R_i^{(x,y)} \leq
+R^{(x,y)}_{n+1} \Big\} \leq \lceil 1-\alpha \rceil_w \bigg\},
+\end{equation}
+where \smash{$\lceil 1-\alpha \rceil_w = \min\{ \tau \in \mathrm{range}(\hF^w_n)
+  : \tau \geq \beta\}$} and \smash{$\hF^w_n$} denotes the (random) CDF of the
+discrete distribution \smash{$\sum_{i=1}^n \tw_i \, \delta_{R^{(x,y)}_i} +
+  \tw_{n+1} \, \delta_\infty$}. We note that, as before (for the
+likelihood-weighted case), the adjustment of the probability level needed here
+is random.  
+
+\paragraph{Auxiliary randomization.*}
+
+We can randomize the CDF form in \eqref{eq:weighted_cdf_nex} as follows: 
+\[
+\hC_n^{w,*}(x) = \bigg\{ y : \sum_{i=1}^n \tw_i \, 1\Big\{ R_i^{(x,y)} <
+R^{(x,y)}_{n+1} \Big\} + U \sum_{i=1}^{n+1} \tw_i \, 1\Big\{ R_i^{(x,y)} =
+R^{(x,y)}_{n+1} \Big\} \leq 1-\alpha \bigg\},
+\]
+where $U \sim \mathrm{Unif}(0,1)$, independent of everything else. This is
+fairly simple and intuitive---it is free of any level adjustments needed in the   
+unrandomized CDF-based set in \eqref{eq:weighted_cdf_nex}. The set
+\smash{$\hC^{w,*}_n$} satisfies the same guarantee as in
+\eqref{eq:weighted_cov_nex}. It is not clear whether we can say something
+sharper, but practically, it it gets rid of the discretization error hidden in 
+the inequality \eqref{eq:weighted_cov_nex} by using randomization. 
+
+We can also randomize the quantile form in \eqref{eq:weighted_conf_nex} in order
+to obtain exact coverage (similar to what we did in the likelihood-weighted
+case) but we omit the details. 
+
+\subsection{Custom weights, nonsymmetric score function}
+
+When the score function is nonsymmetric in its last $n+1$ elements---for
+example, $V(Z_i; Z)$ when denotes a score assigned to $Z_i$ is based on a model
+trained on $Z$ that used the \emph{order} of the points in $Z$, such as an
+autoregressive model for forecasting in a time series problem---then it is still
+reasonable to ask what guarantees a weighted conformal prediction set would
+have. However, this lies outside of the scope of the previous result given in
+Theorem \ref{thm:weighted_conf_nex}.  
+
+It turns out that we can accommodate a completely arbitrary (possibly
+nonsymmetric) score function $V$, by injecting a random swap into the
+construction of the conformal prediction set. This is the second main result,
+for custom-weighted conformal prediction.      
+
+\begin{theorem}
+\label{thm:weighted_conf_swap}
+Let $w_i \in [0,1]$, $i=1,\dots,n$ be fixed and arbitrary weights, and define
+\smash{$\tw_i$}, $i=1,\dots,n+1$ as in \eqref{eq:tw}. Define a weighted
+conformal set (based on the first $n$ samples) at a point $x \in \cX$, with
+nominal error level $\alpha \in (0,1)$, by    
+\begin{equation}
+\label{eq:weighted_conf_swap}
+\hC^w_n(x) = \bigg\{ y : R_{n+1}^{(x,y),K} \leq \Quantile\bigg( 1-\alpha;  
+\, \sum_{i=1}^n \tw_i \, \delta_{R_i^{(x,y),K}} + \tw_{n+1} \, \delta_\infty 
+\bigg) \bigg\},   
+\end{equation}
+where \smash{$R_i^{(x,y),K}$}, $i=1,\ldots,n+1$ are conformity scores defined as
+follows. Let \smash{$Z^{(x,y)} = (Z_1,\dots,Z_n,(x,y))$}, and let
+\smash{$(Z^{(x,y)})^K$} denote this vector after swapping components $K$ and  
+$n+1$, where
+\[
+K \sim \sum_{i=1}^{n+1} \tw_i \, \delta_i,
+\]
+independent of everything else. Then 
+\begin{equation}
+\label{eq:scores_swap}
+\begin{aligned}
+R_i^{(x,y),K} &= V\Big( (X_i,Y_i); \, (Z^{(x,y)})^K \Big), \quad 
+i=1,\dots,n, \\ 
+R_{n+1}^{(x,y),K} &= V\Big( (x,y); \, (Z^{(x,y)})^K \Big).
+\end{aligned}
+\end{equation}
+With \emph{no} assumptions on $V$ and \emph{no} assumptions on the joint
+distribution of $Z_i=(X_i,Y_i)$, $i=1,\dots,n+1$, the set \smash{$\hC^w_n$}
+satisfies the exact same guarantee as in \eqref{eq:weighted_cov_nex}. 
+\end{theorem}
+
+To reiterate, the key difference here is that the scores \eqref{eq:scores_swap}
+used in the construction of the conformal set \eqref{eq:weighted_conf_swap} are
+computed on a data vector in which we swap components $K$ and $n+1$, where $K$
+follows a multinomial distribution, with probabilities \smash{$\tw_i$},
+$i=1,\dots,n+1$. To be clear, in the case that the scores are the result of
+fitting a particular prediction algorithm to the data vector, this swap will
+alter the fitted model returned by the prediction algorithm. The extent to which
+this matters undoubtedly depends on the prediction algorithm. In many practical
+situations, we would not expect this to have a large effect, and we note
+generally that applying this swap is much gentler than applying a random
+permutation to the data vector before computing the scores (which would
+effectively render $V$ symmetric).
+
+Looking back at Figure \ref{fig:electricity}, we can see this method being
+applied with weighted least squares as the prediction algorithm (results in
+red), where the weights themselves decay into the past. This is a nonsymmetric
+algorithm because the order of the data matters (observation weights get
+assigned accordingly, for  the regression). Compared to unweighted least squares
+(in yellow), we see comparable coverage and generally shorter prediction
+intervals. 
+
+\section{Adaptive conformal inference}
+
+\def\err{\mathrm{err}}
+
+Lastly we cover a conformal-like method, for sequential prediction problems, due 
+to \citet{gibbs2021adaptive}. In a way, this is a signifcant departure from the
+methods we've seen thus far, since the base idea isn't specific to conformal
+prediction at all. Its core guarantee is quite simple and at the same time quite
+strong. This work has inspired a line of inquiry into online methods for
+prediction sets, such as \citet{gibbs2022conformal, zaffran2022adaptive,
+  bhatnagar2023improved, angelopoulos2023conformal}.
+
+Assume we have an infinite sequence of observations $(X_t,Y_t) \in \cX \times
+\cY$, $t=1,2,3,\ldots$, which we can think of as being indexed by time. Assume
+that at each time $t$, we have a method for computing a prediction set
+\smash{$C_t^\beta \subseteq \cY$} for $Y_t$, at any nominal level $\beta \in
+\R$. The set \smash{$C_t^\beta$} could come from some version of conformal 
+prediction run on the past data $(X_s,Y_s)$, $s<t$, or really, any other
+method. All that we require is that the method for producing sets
+\emph{saturates} at any level below 0 or above 1, meaning  
+\begin{equation}
+\label{eq:saturate}
+C_t^\beta = \emptyset \;\, \text{for $\beta \leq 0$}, \quad \text{and} \quad 
+C_t^\beta = \cY \;\, \text{for $\beta \geq 1$}.
+\end{equation}
+Adaptive conformal inference (ACI)\footnote{The method was proposed and named by
+  \citet{gibbs2021adaptive} in the context of using conformal prediction as the
+  method used to compute prediction sets \smash{$C_t^\beta$}, but as noted, any
+  method for prediction sets will work so long as it saturates in the sense of
+  \eqref{eq:saturate}.}  
+is an algorithm for adjusting the working level $1-\alpha_t$ of the prediction 
+sets over time $t=1,2,3,\ldots$ so as to try to maintain a realized coverage as
+close to $1-\alpha$ as possible, where $\alpha \in (0,1)$ is some prespecified
+error tolerance. It is very simple: it initializes $\alpha_0 = \alpha$, and
+performs updates according to    
+\begin{equation}
+\label{eq:aci}
+\alpha_{t+1} = \alpha_t - \eta (\err_t - \alpha), \;\; t=0,1,2,\ldots,
+\end{equation}
+where \smash{$\err_t = 1\{ Y_t \notin C_t^{1-\alpha_t} \}$} and $\eta>0$ is a
+step size. These updates are highly intuitive: if we cover, then we increase the
+working error level by $\eta \alpha$ (make future prediction sets smaller), and
+if we miscover, then we decrease the working error level by $\eta (1-\alpha)$
+(make future prediction sets larger).
+
+\paragraph{Boundedness of ACI iterates.}
+
+The following is a simple but important realization: the ACI iterates in
+\eqref{eq:aci} are always uniformly bounded, because, as the proof of the next
+lemma shows, they have a kind of self-correcting property.  
+
+\begin{lemma}
+\label{lem:aci_bounded}
+The iterates from ACI \eqref{eq:aci} satisfy $\alpha_t \in [-\eta, 1+\eta]$, for
+any $t=1,2,3,\ldots$.  
+\end{lemma}
+
+\begin{proof}
+Denote $\ell = \inf_{t \geq 1} \alpha_t$ and assume $\ell < -\eta$. Fix any
+small $\epsilon>0$ such that $\ell + \epsilon < -\eta$ and $\epsilon <
+\eta\alpha$. Then there exists some $t \geq 2$ such that $\alpha_t  \leq \ell +
+\epsilon < -\eta$. The update \eqref{eq:aci} at $t-1$ tells us that 
+\begin{align*}
+\alpha_t &= \alpha_{t-1} - \eta(\err_{t-1} - \alpha) \\
+&= \begin{cases} 
+\alpha_{t-1} + \eta\alpha & \text{if $\err_{t-1} = 0$} \\ 
+\alpha_{t-1} - \eta(1-\alpha) & \text{if $\err_{t-1} = 1$}. 
+\end{cases}
+\end{align*}
+We will be able to derive a contradiction in each of the above cases. 
+\begin{itemize}
+\item In the first case $\alpha_{t-1}$ must have been smaller than $\alpha_t$,
+  but this is impossible, since it would be less than the infimum:
+  $\alpha_{t-1} \leq \ell + \epsilon - \eta\alpha < \ell = \inf_{t \geq 1}
+  \alpha_t$, which is a contradiction.           
+\item In the second case $\alpha_{t-1}$ must have been larger than $\alpha_t$,
+  but this is impossible, since it would be less than zero, leading to coverage: 
+  $\alpha_{t-1} <  -\eta + \eta(1-\alpha) < 0$, so $\err_{t-1}=0$, which is
+  again a contradiction.        
+\end{itemize}
+This proves that $\inf_{t \geq 1} \alpha_t \geq -\eta$. The proof that $\sup_{t
+  \geq 1} \alpha_t \leq 1+\eta$ is similar.      
+\end{proof}
+
+\paragraph{Long-run coverage of ACI.}
+
+This boundedness property leads to a simple-to-prove, yet profound fact about
+ACI: it achieves long-run coverage $1-\alpha$, always, meaning, it achieves this
+no matter the sequence $(X_t,Y_t)$, $t=1,2,3,\ldots$ (even if this sequence were
+chosen adversarially).  
+
+\begin{theorem}
+\label{thm:aci_cov}
+For any $t_0 \geq 0$ and $T \geq 1$, the errors from the ACI iterates
+\eqref{eq:aci} satisfy     
+\begin{equation}
+\label{eq:aci_cov_finite}
+\bigg| \frac{1}{T} \sum_{t=t_0+1}^{t_0+T} \err_t - \alpha \bigg| \leq \frac{1 +
+  2\eta}{T \eta}. 
+\end{equation}
+In particular, this implies
+\begin{equation}
+\label{eq:aci_cov_infinite}
+\lim_{T \to \infty} \, \frac{1}{T} \sum_{t=1}^T \err_t = \alpha. 
+\end{equation}
+\end{theorem}
+
+\begin{proof}
+Without a loss of generality we prove the result for $t_0=0$. Let $s_t = \err_t
+- \alpha$, and write the update in \eqref{eq:aci} as $\alpha_t - \eta s_t$. Then  
+\[
+\frac{1}{T} \sum_{t=1}^T s_t = \frac{\alpha_{T+1} - \alpha_1}{T \eta}.  
+\]
+But $\alpha_{T+1} \leq 1+\eta$ and $\alpha_1 \geq -\eta$ by Lemma
+\ref{lem:aci_bounded}, which proves the desired result.
+\end{proof}
+
+To reiterate, Theorem \ref{thm:aci_cov} puts no constraints on the data
+generating distribution (or even assumes that the data is random). It delivers a
+coverage guarantee over any interval $[t_0+1, t_0+T]$ of \smash{$\approx
+  1-\alpha \pm \frac{1}{T}$}, as seen in \eqref{eq:aci_cov_finite}. This of
+translates into coverage exactly $1-\alpha$ over all time, as seen in
+\eqref{eq:aci_cov_infinite}. Figure \ref{fig:stocks} gives an example of ACI on
+financial time series data, from \citet{gibbs2021adaptive}.  
+
+\begin{figure}[htb]
+\includegraphics[width=\textwidth]{stocks.pdf}
+\caption{\it Experiments for adaptive conformal inference on predicting stock
+  market volatility. The nominal coverage level is 0.9. Shown are the results of
+  local coverage (averaged over a trailing window of 500 days) when using ACI
+  (in blue), versus a fixed level (in red). The coverage fluctuations of ACI are
+  not too dissimilar to the trailing average of i.i.d.\ Bernoulli coin flips (in
+  gray) with success probability 0.9. Credit: \citet{gibbs2021adaptive}.}           
+\label{fig:stocks}
+\end{figure}
+
+\paragraph{ACI as online gradient descent.}
+
+Defining $s_t = \err_t - \alpha$, we can show that $s_t \in \partial
+f_t(\alpha_t)$ for a particular convex loss function $f_t$, which will make 
+\eqref{eq:aci} an instance of online gradient descent (technically, the online
+subgradient method) applied to the convex problem
+\[
+\minimize_a \quad \sum_{t=1}^T f_t(a),
+\]
+for some (arbitrarily large) time horizon $T$. In particular, let
+\[
+\beta_t = \sup \{ \beta : Y_t \in C_t^{1-\beta} \}, 
+\]
+and 
+\begin{align*}
+\nonumber
+f_t(a) &= \phi_{1-\alpha}(1-\beta_t - (1-a)) \\
+&= \phi_{1-\alpha}(a - \beta_t),
+\end{align*}
+where $\phi_\tau$ denotes the tilted $\ell_1$ loss at quantile level $\tau$,
+that is, $\phi_\tau(x) = \tau |x|$ for $x \geq 0$ and $(1-\tau) |x|$ for $x <
+0$. Then a straightforward calculation shows
+\[
+\partial f_t(a) = 
+\begin{cases}
+\{1-\alpha\} & \text{if $a > \beta_t$} \\
+[-\alpha, 1-\alpha] & \text{if $a = \beta_t$} \\
+\{-\alpha\} & \text{if $a < \beta_t$}.
+\end{cases}
+\]
+Furthermore, note that by definition of $\beta_t$, we have $a > \beta_t \iff Y_t
+\notin C_t^{1-a}$. Thus it is clear that
+\[
+s_t = 
+\begin{cases}
+1-\alpha & \text{if $\err_t = 1$} \\
+-\alpha & \text{if $\err_t = 0$}
+\end{cases}
+\; \in \; \partial f_t(\alpha_t).
+\]
+
+\bibliographystyle{plainnat}
+\bibliography{../../common/ryantibs}
+
+\end{document}
