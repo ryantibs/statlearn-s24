@@ -1,0 +1,57 @@
+\documentclass{article}
+
+\def\ParSkip{} 
+\input{../../common/ryantibs}
+\usepackage[normalem]{ulem}
+\usepackage{animate}
+
+\title{Calibration, Scoring, and Blackwell Approachability \\ \smallskip
+\large Advanced Topics in Statistical Learning, Spring 2024 \\ \smallskip
+Ryan Tibshirani }
+\date{}
+
+\begin{document}
+\maketitle
+\RaggedRight
+\vspace{-50pt}
+
+(This is just an outline of what we will cover. Notes from last year's lecture
+on scoring and calibration are available on the course website; they have a
+slightly different focus/exposition then what we'll pursue this year, but will 
+nonetheless be quite relevant as a reference.)  
+
+\bigskip
+the many faces of calibration: 
+
+\begin{itemize}
+\item forecasting: sequential and probabilistic notations
+\item interval coverage generalizes to PIT calibration 
+\item interlude: marginal calibration (critiques)
+\item conditional calibration (binary and general case)
+\item do linear ensembles retain calibration?
+\end{itemize}
+
+\bigskip
+calibration is not enough---enter scoring rules:
+
+\begin{itemize}
+\item let's build up a scoring role from the ground up
+\item irreducible uncertainty, sharpness, calibration 
+\item proper scores, score divergence, entropy
+\item examples: log score, Brier score, CRPS
+\item each has different operating characteristics! 
+\end{itemize}
+
+\bigskip 
+... and along came Blackwell, many decades earlier: 
+
+\begin{itemize}
+\item real-valued payoffs: von Neumann's setting
+\item vector valued payoffs: Blackwell's setting
+\item response satisfiability, halfspace satisfiability
+\item Blackwell approachability theorem
+\item (quick proof? with credit to M.\ Jordan)
+\item recalibration via Blackwell approachability
+\end{itemize}
+
+\end{document}
