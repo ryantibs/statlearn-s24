@@ -961,7 +961,7 @@ For any $t_0 \geq 0$ and $T \geq 1$, the errors from the ACI iterates
 \begin{equation}
 \label{eq:aci_cov_finite}
 \bigg| \frac{1}{T} \sum_{t=t_0+1}^{t_0+T} \err_t - \alpha \bigg| \leq \frac{1 +
-  2\eta}{T \eta}. 
+  2\eta}{\eta T}. 
 \end{equation}
 In particular, this implies
 \begin{equation}
@@ -972,12 +972,18 @@ In particular, this implies
 
 \begin{proof}
 Without a loss of generality we prove the result for $t_0=0$. Let $s_t = \err_t
-- \alpha$, and write the update in \eqref{eq:aci} as $\alpha_t - \eta s_t$. Then  
+- \alpha$, and write the updates in \eqref{eq:aci} as 
 \[
-\frac{1}{T} \sum_{t=1}^T s_t = \frac{\alpha_{T+1} - \alpha_1}{T \eta}.  
+\alpha_{t+1} = \alpha_t - \eta s_t, \;\; t=0,1,2,\ldots.
+\] 
+Then summing up over $t = 1,\dots,T$ gives
+\[
+\eta \sum_{t=1}^T s_t = \alpha_1 - \alpha_{T+1}.
 \]
-But $\alpha_{T+1} \leq 1+\eta$ and $\alpha_1 \geq -\eta$ by Lemma
-\ref{lem:aci_bounded}, which proves the desired result.
+But $\alpha_{T+1}, \alpha_1 \in [-\eta, 1+\eta]\leq 1+\eta$ by Lemma
+\ref{lem:aci_bounded}, so the right-hand side is at most $1 + 2\eta$ in absolute 
+value. Dividing both sides by $\eta T$ and using this bound proves the desired
+result.  
 \end{proof}
 
 To reiterate, Theorem \ref{thm:aci_cov} puts no constraints on the data
