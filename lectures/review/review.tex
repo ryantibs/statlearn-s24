@@ -485,13 +485,13 @@ generic XY-Pairs model. It's also not totally harmless. To see this, suppose
 that we were in a situation where the true model is:  
 \begin{gather*}
 \text{$(x_i, z_i, y_i)$, $i=1,\dots,n$ are i.i.d.}, \\
-\text{where each $y_i = f(x_i) + g_0(z_i) + \xi_i$, and $\E[\xi_i] = 0$}, 
+\text{where each $y_i = f(x_i) + g(z_i) + \xi_i$, and $\E[\xi_i] = 0$}, 
 \end{gather*}
-Let's even assume that each $x_i \indep \xi_i$, and $\E[g_0(z_i) | x_i] =
+Let's even assume that each $x_i \indep \xi_i$, and $\E[g(z_i) | x_i] =
 0$. Then the regression function (of $y_i$ on $x_i$) is indeed $f$. But in the  
 signal-plus-noise model for $y_i$ on $x_i$, the noise variable is 
 \[
-\epsilon_i = g_0(z_i) + \xi_i,
+\epsilon_i = g(z_i) + \xi_i,
 \]
 and if $z_i$ is dependent on $x_i$, then $\epsilon_i$ will be too.
 
