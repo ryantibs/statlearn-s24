@@ -220,7 +220,7 @@ subscript notation, $\E_\sigma$), with $x_1,\dots,x_n$ fixed. The
 the empirical Rademacher complexity over i.i.d.\ draws $x_1,\dots,x_n$,
 \[
 \Rad(\cF) = \E_{x,\sigma} \Bigg[ \sup_{f \in \cF} \, \frac{1}{n} \Bigg| 
-\sum_{i=1}^n \epsilon_i f(x_i) \Bigg| \Bigg]. 
+\sum_{i=1}^n \sigma_i f(x_i) \Bigg| \Bigg]. 
 \]
 To emphasize, the expectation above is over both $\sigma_1,\dots,\sigma_n$ and
 $x_1,\dots,x_n$.
@@ -474,14 +474,14 @@ complexity by
 \[
 \hat{R}_n(\delta) = \Rad(\cF \cap B_n(\delta), x_{1:n}) 
 = \E_\sigma \Bigg[ \sup_{f \in \cF \cap B_n(\delta)} \, \frac{1}{n} \Bigg|  
-\sum_{i=1}^n \epsilon_i f(x_i) \Bigg| \Bigg],
+\sum_{i=1}^n \sigma_i f(x_i) \Bigg| \Bigg],
 \]
 where $B_n(\delta)$ is the empirical norm ball of radius $\delta$. Similarly, we
 define the localized population Rademacher complexity by   
 \[
 R_n(\delta) = \Rad(\cF \cap B_2(\delta))
 = \E_{x,\sigma} \Bigg[ \sup_{f \in \cF \cap B_2(\delta)} \, \frac{1}{n} \Bigg|  
-\sum_{i=1}^n \epsilon_i f(x_i) \Bigg| \Bigg],
+\sum_{i=1}^n \sigma_i f(x_i) \Bigg| \Bigg],
 \]
 where $B_2(\delta)$ is the population norm ball of radius $\delta$. We are now
 ready to state the result, which we informally call a ``coupling'' between
