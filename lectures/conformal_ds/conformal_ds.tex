@@ -106,11 +106,11 @@ smallest of $R_1,\dots,R_{n+1}$. The last display is itself equivalent to
 \P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \frac{1}{n+1}
 \sum_{i=1}^{n+1} \delta_{R_i} \bigg) \bigg\} \geq 1-\alpha, 
 \]
-because the quantile function of the empirical distribution of
-$R_1,\dots,R_{n+1}$, only changes in increments of $1/(n+1)$ (and will
-automatically round up to the nearest increment until it captured sufficient
-probability mass to exceed $1-\alpha$). Finally, it turns out that we can
-equivalently express the last display as  
+because the CDF of the empirical distribution of $R_1,\dots,R_{n+1}$ only
+changes in increments of $1/(n+1)$ (and will automatically round up to the
+nearest increment once it captures sufficient probability mass to exceed
+$1-\alpha$). Finally, it turns out that we can equivalently express the last
+display as    
 \begin{equation}
 \label{eq:quantile}
 \P\bigg\{ R_{n+1} \leq \Quantile\bigg( 1-\alpha; \, \frac{1}{n+1} \sum_{i=1}^n
@@ -411,8 +411,7 @@ independent of everything else. Arguably, the randomized conformal set from
 the second-to-last display is actually less simple and intuitive---we must
 introduce level adjustments that were not needed in
 \eqref{eq:weighted_conf}. Ultimately, either version of the set
-\smash{$\hC^{w,*}_n$} defined above (it is not clear that the two are 
-equivalent) satisfies       
+\smash{$\hC^{w,*}_n$} defined above (they are actually equivalent) satisfies       
 \[
 \P\big( Y_{n+1} \in \hC^{w,*}_n(X_{n+1}) \big) = 1-\alpha.  
 \]
